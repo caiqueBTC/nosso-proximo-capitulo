@@ -82,7 +82,7 @@ const CONFIG = {
     fotoFinalUrl: "assets/foto-final.jpg",
     whatsappNumero: "5512991882850",
     whatsappMensagem:
-      "Amor, passei por todos os desafios, abri o nosso convite e já garanti meu prêmio da raspadinha! 🍨💌 (Sorte que nas perguntas não tinha \"quem ama mais\", porque essa você sabe que eu ganhava fácil 😌❤️) Te amo! Quando vamos tomar nosso açaí?"
+      "Amor, passei por todos os desafios, abri o nosso convite e já garanti meu prêmio da raspadinha! 🍨💌 (Sorte que nas perguntas não tinha \"quem ama mais\" ksksks). Mas te amo, te amo muito! Essa mensagem foi para saber se você visualizou e trazer a conversa aqui para o WhatsApp ❤️"
   }
 };
 

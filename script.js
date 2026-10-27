@@ -101,6 +101,8 @@ const state = {
   currentLetterPage: 1,
   scratchCompleted: false,
   scratchStarted: false,
+  scratchStrokes: 0,
+  scratchTotalDistance: 0,
   dateAccepted: false,
   audioEnabled: sessionStorage.getItem(STORAGE_AUDIO_KEY) !== "false",
   reducedMotion: window.matchMedia("(prefers-reduced-motion: reduce)").matches,
@@ -2304,46 +2306,59 @@ function setupScratchCard() {
   if (!canvas) return;
 
   let isScratching = false;
-  let moveCounter = 0;
+  let lastX = 0;
+  let lastY = 0;
+  let currentStrokeDistance = 0;
+  let moveThrottle = 0;
 
-  // Pincel com borda irregular (vários círculos com jitter) + pó dourado
-  function scratchAtPoint(clientX, clientY) {
+  function scratchSegment(x1, y1, x2, y2) {
     if (state.scratchCompleted) return;
     state.scratchStarted = true;
-    const rect = canvas.getBoundingClientRect();
-    const x = clientX - rect.left;
-    const y = clientY - rect.top;
 
     const ctx = canvas.getContext("2d", { willReadFrequently: true });
     ctx.globalCompositeOperation = "destination-out";
+    ctx.lineWidth = 28;
+    ctx.lineCap = "round";
+    ctx.lineJoin = "round";
 
-    for (let i = 0; i < 4; i++) {
-      const jx = x + (Math.random() - 0.5) * 16;
-      const jy = y + (Math.random() - 0.5) * 16;
-      const jr = 18 + Math.random() * 12;
+    ctx.beginPath();
+    ctx.moveTo(x1, y1);
+    ctx.lineTo(x2, y2);
+    ctx.stroke();
+
+    // Pequeno detalhe orgânico nas bordas do risco
+    for (let i = 0; i < 2; i++) {
+      const rx = (x1 + x2) / 2 + (Math.random() - 0.5) * 12;
+      const ry = (y1 + y2) / 2 + (Math.random() - 0.5) * 12;
       ctx.beginPath();
-      ctx.arc(jx, jy, jr, 0, Math.PI * 2);
+      ctx.arc(rx, ry, 10 + Math.random() * 6, 0, Math.PI * 2);
       ctx.fill();
     }
 
-    spawnScratchGoldDust(x, y);
+    spawnScratchGoldDust(x2, y2);
     soundFX.playScratchGrain();
-
-    moveCounter++;
-    if (moveCounter % 6 === 0) {
-      checkScratchPercentage();
-    }
   }
 
   function checkScratchPercentage() {
     if (state.scratchCompleted) return;
+
+    // Exige no mínimo 4 raspadas reais antes de qualquer revelação automática!
+    const effectiveStrokes = Math.max(
+      state.scratchStrokes,
+      Math.floor(state.scratchTotalDistance / 110)
+    );
+
+    if (effectiveStrokes < 4) {
+      return;
+    }
+
     const ctx = canvas.getContext("2d", { willReadFrequently: true });
     const { width, height } = canvas;
     if (!width || !height) return;
 
     const imgData = ctx.getImageData(0, 0, width, height).data;
     let transparentPixels = 0;
-    const stride = 32;
+    const stride = 28;
     let totalSampled = 0;
 
     for (let i = 3; i < imgData.length; i += 4 * stride) {
@@ -2354,7 +2369,9 @@ function setupScratchCard() {
     }
 
     const ratio = transparentPixels / Math.max(1, totalSampled);
-    if (ratio >= 0.45) {
+
+    // Revela se atingiu 50% de área raspada OU se ela já deu várias raspadas fortes (>= 8)
+    if (ratio >= 0.50 || effectiveStrokes >= 8) {
       completeScratchReveal();
     }
   }
@@ -2362,18 +2379,55 @@ function setupScratchCard() {
   canvas.addEventListener("pointerdown", (e) => {
     if (state.scratchCompleted) return;
     isScratching = true;
+    currentStrokeDistance = 0;
     canvas.setPointerCapture(e.pointerId);
-    scratchAtPoint(e.clientX, e.clientY);
+
+    const rect = canvas.getBoundingClientRect();
+    lastX = e.clientX - rect.left;
+    lastY = e.clientY - rect.top;
+
+    // Cria apenas uma marquinha suave inicial onde tocou (sem revelar nem disparar check)
+    const ctx = canvas.getContext("2d", { willReadFrequently: true });
+    ctx.globalCompositeOperation = "destination-out";
+    ctx.beginPath();
+    ctx.arc(lastX, lastY, 13, 0, Math.PI * 2);
+    ctx.fill();
+
+    spawnScratchGoldDust(lastX, lastY);
   });
 
   canvas.addEventListener("pointermove", (e) => {
     if (!isScratching || state.scratchCompleted) return;
-    scratchAtPoint(e.clientX, e.clientY);
+    const rect = canvas.getBoundingClientRect();
+    const x = e.clientX - rect.left;
+    const y = e.clientY - rect.top;
+
+    const dist = Math.hypot(x - lastX, y - lastY);
+    if (dist < 3) return; // ignora micro-vibrações
+
+    currentStrokeDistance += dist;
+    state.scratchTotalDistance += dist;
+
+    scratchSegment(lastX, lastY, x, y);
+    lastX = x;
+    lastY = y;
+
+    moveThrottle++;
+    if (moveThrottle % 8 === 0) {
+      checkScratchPercentage();
+    }
   });
 
   function stopScratching() {
     if (!isScratching) return;
     isScratching = false;
+
+    // Se o movimento do traço foi de pelo menos 30px, conta como uma raspada legítima
+    if (currentStrokeDistance >= 30) {
+      state.scratchStrokes++;
+    }
+    currentStrokeDistance = 0;
+
     checkScratchPercentage();
   }
 
@@ -2598,6 +2652,8 @@ function resetExperience() {
   state.currentLetterPage = 1;
   state.scratchCompleted = false;
   state.scratchStarted = false;
+  state.scratchStrokes = 0;
+  state.scratchTotalDistance = 0;
   state.dateAccepted = false;
 
   // Reseta Fita de Cetim de Progresso

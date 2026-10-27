@@ -642,23 +642,25 @@ class RomanticAudioEngine {
     this.playSoftNote(2960, now + 0.14, 0.1, 0.055, "sine");
   }
 
-  // Abertura da caixa: glissando de harpa ascendente (8 notas pentatônicas, 60ms entre elas) + acorde final
+  // Abertura da caixa: glissando de harpa ascendente prolongado + acorde final quente sustentado
   playBoxUnlock() {
     if (!state.audioEnabled) return;
     const ctx = this.initContext();
     if (!ctx) return;
-    this.duckMusic(2600);
+    this.duckMusic(3600);
 
     const now = ctx.currentTime;
-    const harpPentatonic = [523.25, 587.33, 659.25, 783.99, 880.0, 1046.5, 1174.66, 1318.51];
+    const harpPentatonic = [
+      523.25, 587.33, 659.25, 783.99, 880.0, 1046.5, 1174.66, 1318.51, 1567.98, 1760.0,
+    ];
     harpPentatonic.forEach((freq, idx) => {
-      this.playSoftNote(freq, now + idx * 0.06, 0.85, 0.055, "triangle");
+      this.playSoftNote(freq, now + idx * 0.075, 1.05, 0.055, "triangle");
     });
 
     // Acorde final sustentado
-    const chordStart = now + harpPentatonic.length * 0.06;
-    [523.25, 659.25, 783.99, 1046.5].forEach((freq) => {
-      this.playSoftNote(freq, chordStart, 1.6, 0.048, "sine");
+    const chordStart = now + harpPentatonic.length * 0.075;
+    [523.25, 659.25, 783.99, 1046.5, 1318.51].forEach((freq) => {
+      this.playSoftNote(freq, chordStart, 2.3, 0.048, "sine");
     });
   }
 
@@ -1493,12 +1495,13 @@ function setupQuestion3() {
 }
 
 /* ============================================================================
-   3.3 & 3.4 SEQUÊNCIA DE ABERTURA DA CAIXA (~3.5s) E EXPLOSÃO DE ROSAS COM FÍSICA
+   3.3 & 3.4 SEQUÊNCIA DE ABERTURA DA CAIXA (~5.7s) E EXPLOSÃO DE ROSAS COM FÍSICA
    ============================================================================ */
-function spawnRoseAndPetalPhysicsBurst() {
+function spawnRoseAndPetalPhysicsBurst(wave = 1) {
   if (!el.particlesAnchor) return;
 
   if (state.reducedMotion) {
+    if (wave > 1) return;
     // Reduced motion: 5 rosas estáticas aparecendo com fade
     for (let i = 0; i < 5; i++) {
       const rose = document.createElement("div");
@@ -1507,28 +1510,29 @@ function spawnRoseAndPetalPhysicsBurst() {
       rose.innerHTML = `<svg viewBox="0 0 80 80"><use href="${sym}" /></svg>`;
       rose.style.transform = `translate3d(${(i - 2) * 38}px, ${-48 - (i % 2) * 18}px, 0) scale(0.85)`;
       el.particlesAnchor.appendChild(rose);
-      setTimeout(() => rose.remove(), 3500);
+      setTimeout(() => rose.remove(), 3800);
     }
     return;
   }
 
-  // 1. Burst de 12 Rosas Inteiras (80% vermelhas #rose, 20% brancas #rose-white) com física real
-  const roseCount = isLowEndMobile ? 10 : 14;
+  // 1. Burst de Rosas Inteiras (80% vermelhas #rose, 20% brancas #rose-white) com física real
+  const baseRoseCount = isLowEndMobile ? 10 : 15;
+  const roseCount = wave === 1 ? baseRoseCount : Math.max(6, Math.round(baseRoseCount * 0.65));
   for (let i = 0; i < roseCount; i++) {
     const roseEl = document.createElement("div");
     roseEl.className = "burst-rose-item";
-    const isWhite = i % 5 === 0; // 20% brancas (flor de Santa Teresinha)
+    const isWhite = (i + wave) % 5 === 0; // 20% brancas (flor de Santa Teresinha)
     roseEl.innerHTML = `<svg viewBox="0 0 80 80"><use href="${isWhite ? "#rose-white" : "#rose"}" /></svg>`;
     el.particlesAnchor.appendChild(roseEl);
 
-    const spreadAngle = (-145 + (i / (roseCount - 1)) * 110 + (Math.random() - 0.5) * 14) * (Math.PI / 180);
-    const speed = 220 + Math.random() * 160;
+    const spreadAngle = (-148 + (i / Math.max(1, roseCount - 1)) * 116 + (Math.random() - 0.5) * 16) * (Math.PI / 180);
+    const speed = 235 + Math.random() * 175;
     const vx = Math.cos(spreadAngle) * speed;
-    const vy0 = Math.sin(spreadAngle) * speed - 60;
-    const gravity = 460;
-    const scale = 0.55 + Math.random() * 0.55;
-    const rotSpeed = (Math.random() - 0.5) * 260;
-    const totalMs = 2100 + Math.random() * 500;
+    const vy0 = Math.sin(spreadAngle) * speed - 75;
+    const gravity = 410;
+    const scale = 0.6 + Math.random() * 0.58;
+    const rotSpeed = (Math.random() - 0.5) * 240;
+    const totalMs = 2600 + Math.random() * 650;
     const startTime = performance.now();
 
     function stepRose(now) {
@@ -1541,7 +1545,7 @@ function spawnRoseAndPetalPhysicsBurst() {
       const x = vx * elapsed;
       const y = vy0 * elapsed + 0.5 * gravity * elapsed * elapsed;
       const rot = rotSpeed * elapsed;
-      const alpha = progress > 0.72 ? 1 - (progress - 0.72) / 0.28 : 1;
+      const alpha = progress > 0.74 ? 1 - (progress - 0.74) / 0.26 : 1;
       roseEl.style.transform = `translate3d(${x.toFixed(1)}px, ${y.toFixed(1)}px, 0) rotate(${rot.toFixed(1)}deg) scale(${scale.toFixed(2)})`;
       roseEl.style.opacity = alpha.toFixed(2);
       requestAnimationFrame(stepRose);
@@ -1550,25 +1554,26 @@ function spawnRoseAndPetalPhysicsBurst() {
     requestAnimationFrame(stepRose);
   }
 
-  // 2. 35 a 50 Pétalas que explodem e depois caem lentamente pela tela inteira por ~5s com flutter
-  const petalCount = isLowEndMobile ? 28 : 46;
+  // 2. Pétalas que explodem e depois caem lentamente pela tela inteira por ~6s com flutter
+  const basePetalCount = isLowEndMobile ? 28 : 48;
+  const petalCount = wave === 1 ? basePetalCount : Math.round(basePetalCount * 0.5);
   for (let i = 0; i < petalCount; i++) {
     const petalEl = document.createElement("div");
     petalEl.className = "burst-petal-item";
-    const isWhite = i % 5 === 0;
+    const isWhite = (i + wave) % 5 === 0;
     petalEl.innerHTML = `<svg viewBox="0 0 28 32"><use href="${isWhite ? "#petal-white" : "#petal"}" /></svg>`;
     el.celebrationLayer.appendChild(petalEl);
 
-    const startX = window.innerWidth * 0.5 + (Math.random() - 0.5) * 60;
-    const startY = window.innerHeight * 0.34 + (Math.random() - 0.5) * 30;
-    const burstVx = (Math.random() - 0.5) * (window.innerWidth * 0.85);
-    const burstVy = -(80 + Math.random() * 180);
-    const fallSpeed = 75 + Math.random() * 65;
-    const swayAmp = 22 + Math.random() * 28;
-    const swayFreq = 1.8 + Math.random() * 1.6;
+    const startX = window.innerWidth * 0.5 + (Math.random() - 0.5) * 65;
+    const startY = window.innerHeight * 0.36 + (Math.random() - 0.5) * 32;
+    const burstVx = (Math.random() - 0.5) * (window.innerWidth * 0.88);
+    const burstVy = -(90 + Math.random() * 195);
+    const fallSpeed = 68 + Math.random() * 58;
+    const swayAmp = 24 + Math.random() * 30;
+    const swayFreq = 1.7 + Math.random() * 1.5;
     const phase = Math.random() * Math.PI * 2;
-    const scale = 0.65 + Math.random() * 0.65;
-    const durationMs = 4600 + Math.random() * 1200;
+    const scale = 0.68 + Math.random() * 0.65;
+    const durationMs = 5400 + Math.random() * 1500;
     const t0 = performance.now();
 
     function stepPetal(now) {
@@ -1579,7 +1584,7 @@ function spawnRoseAndPetalPhysicsBurst() {
         return;
       }
       // Transição suave do impulso inicial para queda com deriva senoidal
-      const damp = Math.exp(-dt * 2.1);
+      const damp = Math.exp(-dt * 2.0);
       const x =
         startX +
         burstVx * (1 - damp) * 0.48 +
@@ -1587,12 +1592,12 @@ function spawnRoseAndPetalPhysicsBurst() {
       const y =
         startY +
         burstVy * (1 - damp) * 0.42 +
-        fallSpeed * dt * dt * 0.55;
+        fallSpeed * dt * dt * 0.52;
 
-      const rotZ = dt * 95 + Math.sin(dt * 2.5) * 25;
-      const rotX = Math.sin(dt * 3.2 + phase) * 65;
-      const rotY = Math.cos(dt * 2.8 + phase) * 65;
-      const alpha = p > 0.8 ? 1 - (p - 0.8) / 0.2 : 1;
+      const rotZ = dt * 90 + Math.sin(dt * 2.5) * 25;
+      const rotX = Math.sin(dt * 3.1 + phase) * 65;
+      const rotY = Math.cos(dt * 2.7 + phase) * 65;
+      const alpha = p > 0.82 ? 1 - (p - 0.82) / 0.18 : 1;
 
       petalEl.style.transform = `translate3d(${x.toFixed(1)}px, ${y.toFixed(1)}px, 0) rotateZ(${rotZ.toFixed(1)}deg) rotateX(${rotX.toFixed(1)}deg) rotateY(${rotY.toFixed(1)}deg) scale(${scale.toFixed(2)})`;
       petalEl.style.opacity = alpha.toFixed(2);
@@ -1603,14 +1608,41 @@ function spawnRoseAndPetalPhysicsBurst() {
   }
 }
 
+function focusStageOnBoxForOpening() {
+  // Oculta imediatamente o cartão da Pergunta 3 para que o palco da caixa fique 100% em destaque
+  if (el.stepQ3 && !el.stepQ3.hidden) {
+    if (state.reducedMotion) {
+      el.stepQ3.hidden = true;
+      el.stepQ3.classList.remove("active-step", "step-leaving", "step-entering");
+    } else {
+      el.stepQ3.classList.add("step-leaving");
+      setTimeout(() => {
+        el.stepQ3.hidden = true;
+        el.stepQ3.classList.remove("active-step", "step-leaving", "step-entering");
+      }, 220);
+    }
+  }
+
+  // Centraliza a câmera no topo e ativa o modo palco cinematográfico da caixa
+  window.scrollTo({ top: 0, behavior: state.reducedMotion ? "auto" : "smooth" });
+  if (el.giftBox) {
+    el.giftBox.style.transform = "";
+  }
+  el.giftBoxStage.classList.remove("compact");
+  el.giftBoxStage.classList.add("opening-cinema");
+}
+
 function triggerBoxUnlockSequence() {
   if (state.isUnlockingBox) return;
   state.isUnlockingBox = true;
 
+  focusStageOnBoxForOpening();
+
   if (state.reducedMotion) {
     soundFX.playBoxUnlock();
+    el.giftBoxStage.classList.remove("opening-cinema");
     el.giftBoxStage.classList.add("rays-active", "css-fallback-open", "compact");
-    spawnRoseAndPetalPhysicsBurst();
+    spawnRoseAndPetalPhysicsBurst(1);
     startPolaroidDeveloping();
     goToStep(el.stepUnlocked);
     return;
@@ -1619,113 +1651,191 @@ function triggerBoxUnlockSequence() {
   const gsapInstance = window.gsap;
   if (!gsapInstance) {
     // Degradação elegante caso o CDN do GSAP não tenha carregado
-    soundFX.playKeyUnlock();
+    setTimeout(() => soundFX.playKeyUnlock(), 500);
     setTimeout(() => {
       soundFX.playBoxUnlock();
       el.giftBoxStage.classList.add("rays-active", "css-fallback-open");
-      spawnRoseAndPetalPhysicsBurst();
-    }, 1100);
+      spawnRoseAndPetalPhysicsBurst(1);
+    }, 1800);
     setTimeout(() => {
+      el.giftBoxStage.classList.remove("opening-cinema");
       el.giftBoxStage.classList.add("compact");
       startPolaroidDeveloping();
       goToStep(el.stepUnlocked);
-    }, 3100);
+    }, 4800);
     return;
   }
 
-  // Timeline coreografada de ~3.5s com GSAP
+  const giftTag = el.giftBox.querySelector(".box-gift-tag");
+
+  // Timeline cinematográfica prolongada (~5.65s) com foco total na caixa
   const tl = gsapInstance.timeline();
 
-  // 0.00s: Chave dourada entra voando em arco, encaixa no cadeado e gira 90°
-  tl.add(() => soundFX.playKeyUnlock(), 0);
+  // 0.00s - 0.55s: Foco no palco, levitação suave e tremor de expectativa da caixa
+  tl.fromTo(
+    el.giftBox,
+    { y: 0, scale: 1 },
+    { y: -8, scale: 1.04, duration: 0.45, ease: "sine.inOut" },
+    0.05
+  );
+  tl.to(
+    el.giftBox,
+    {
+      keyframes: [
+        { rotationZ: -1.8, duration: 0.07 },
+        { rotationZ: 1.8, duration: 0.07 },
+        { rotationZ: -1.4, duration: 0.07 },
+        { rotationZ: 1.2, duration: 0.07 },
+        { rotationZ: 0, duration: 0.08 },
+      ],
+      ease: "sine.inOut",
+    },
+    0.22
+  );
+
+  // 0.55s - 1.55s: Chave dourada entra voando num arco gracioso, solta brilhos, encaixa e gira 90°
   tl.fromTo(
     el.flyingKey,
-    { opacity: 0, x: -70, y: -35, rotation: -35, scale: 0.8 },
-    { opacity: 1, x: 78, y: 12, rotation: 0, scale: 1, duration: 0.32, ease: "power2.out" },
-    0
-  );
-  tl.to(el.flyingKey, { rotation: 90, duration: 0.14, ease: "back.out(2)" }, 0.32);
-
-  // 0.45s: A haste do cadeado salta e o cadeado cai com gravidade, gira e some com fade
-  tl.to(el.padlockShackle, { y: -8, rotation: 22, duration: 0.18, ease: "back.out(2)" }, 0.45);
-  tl.to(
-    [el.boxPadlock, el.flyingKey],
-    { y: 75, rotation: 28, opacity: 0, duration: 0.42, ease: "power2.in" },
+    { opacity: 0, x: -95, y: -48, rotation: -42, scale: 0.72 },
+    { opacity: 1, x: 78, y: 12, rotation: 0, scale: 1, duration: 0.68, ease: "power3.out" },
     0.55
   );
+  tl.add(() => {
+    soundFX.playKeyUnlock();
+    spawnBoxMiniPetals(6);
+  }, 1.22);
+  tl.to(
+    el.flyingKey,
+    { rotation: 90, scale: 1.06, duration: 0.28, ease: "back.out(2.2)" },
+    1.25
+  );
 
-  // 0.85s: O laço desfaz e as fitas escorregam pelas laterais
+  // 1.58s - 2.35s: A haste do cadeado salta com mola, a etiqueta comemora e o cadeado cai com gravidade
+  tl.to(
+    el.padlockShackle,
+    { y: -10, rotation: 26, duration: 0.28, ease: "back.out(2.4)" },
+    1.58
+  );
+  if (giftTag) {
+    tl.to(
+      giftTag,
+      {
+        keyframes: [
+          { rotation: 22, duration: 0.18 },
+          { rotation: 4, duration: 0.18 },
+          { rotation: 14, duration: 0.18 },
+          { rotation: 10, duration: 0.18 },
+        ],
+        ease: "sine.inOut",
+      },
+      1.6
+    );
+  }
+  tl.to(
+    [el.boxPadlock, el.flyingKey],
+    { y: 88, rotation: 32, opacity: 0, duration: 0.55, ease: "power2.in" },
+    1.82
+  );
+
+  // 2.35s - 3.45s: O laço 3D de cetim se desfaz lentamente e as fitas escorregam pelas laterais
+  tl.to(
+    el.boxBow.querySelector(".bow-knot"),
+    { scale: 1.18, duration: 0.18, ease: "sine.out" },
+    2.35
+  );
   tl.to(
     el.boxBow.querySelectorAll(".bow-loop-left, .bow-tail-left"),
-    { x: -28, scaleX: 0.35, opacity: 0, duration: 0.42, ease: "power2.inOut" },
-    0.85
+    { x: -38, y: 8, rotation: -24, scaleX: 0.28, opacity: 0, duration: 0.65, ease: "power2.inOut" },
+    2.45
   );
   tl.to(
     el.boxBow.querySelectorAll(".bow-loop-right, .bow-tail-right"),
-    { x: 28, scaleX: 0.35, opacity: 0, duration: 0.42, ease: "power2.inOut" },
-    0.85
+    { x: 38, y: 8, rotation: 24, scaleX: 0.28, opacity: 0, duration: 0.65, ease: "power2.inOut" },
+    2.45
   );
-  tl.to(el.boxBow.querySelector(".bow-knot"), { scale: 0, opacity: 0, duration: 0.3 }, 0.92);
+  tl.to(
+    el.boxBow.querySelector(".bow-knot"),
+    { scale: 0, opacity: 0, duration: 0.38, ease: "back.in(1.8)" },
+    2.58
+  );
   tl.to(
     [el.ribbonVertical, el.lidRibbonVertical],
-    { scaleY: 0, y: 40, opacity: 0, duration: 0.45, ease: "power2.in" },
-    0.95
+    { scaleY: 0, y: 48, opacity: 0, duration: 0.62, ease: "power2.inOut" },
+    2.78
   );
   tl.to(
     el.ribbonHorizontal,
-    { scaleX: 0, x: 45, opacity: 0, duration: 0.45, ease: "power2.in" },
-    0.95
+    { scaleX: 0, x: 54, opacity: 0, duration: 0.62, ease: "power2.inOut" },
+    2.78
   );
 
-  // 1.40s: A tampa sobe e é lançada para o lado com rotação e fade; sai luz quente
+  // 3.40s - 4.40s: Compressão de antecipação + A tampa se ergue alto revelando a luz divina interna
+  tl.to(
+    el.giftBox,
+    { scaleX: 1.05, scaleY: 0.94, y: 4, duration: 0.24, ease: "sine.inOut" },
+    3.4
+  );
+  tl.to(
+    el.giftBox,
+    { scaleX: 1, scaleY: 1, y: -4, duration: 0.38, ease: "back.out(1.8)" },
+    3.64
+  );
   tl.add(() => {
     el.giftBoxStage.classList.add("rays-active");
-  }, 1.38);
+  }, 3.62);
   tl.to(
     el.boxLid,
-    { y: -68, rotationX: 25, rotationZ: -12, duration: 0.32, ease: "power2.out" },
-    1.4
+    { y: -82, rotationX: 28, rotationZ: -14, duration: 0.52, ease: "power2.out" },
+    3.64
   );
   tl.to(
     el.boxLid,
-    { x: -115, y: -25, rotationZ: -42, opacity: 0, duration: 0.42, ease: "power2.in" },
-    1.72
+    { x: -128, y: -32, rotationZ: -44, opacity: 0, duration: 0.58, ease: "power2.in" },
+    4.12
   );
 
-  // 1.60s: EXPLOSÃO DE ROSAS + Rosa principal desabrochando de dentro para fora
+  // 3.85s - 5.55s: GRANDE EXPLOSÃO DE ROSAS (2 ondas) + Rosa principal desabrochando camada por camada
   tl.add(() => {
     soundFX.playBoxUnlock();
-    spawnRoseAndPetalPhysicsBurst();
-  }, 1.6);
+    navigator.vibrate?.([20, 40, 30]);
+    spawnRoseAndPetalPhysicsBurst(1);
+  }, 3.85);
 
-  // Flash de luz quente rápido (0 -> 0.35 -> 0)
+  // Flash de luz quente suave no momento da abertura
   tl.fromTo(
     el.boxBurstFlash,
     { opacity: 0 },
-    { opacity: 0.35, duration: 0.14, yoyo: true, repeat: 1 },
-    1.6
+    { opacity: 0.42, duration: 0.22, yoyo: true, repeat: 1, ease: "sine.inOut" },
+    3.85
   );
 
-  // Rosa principal (~94px) sobe devagar do centro da caixa e desabrocha camada por camada
+  // Rosa principal (~94px) sobe majestosamente do centro da caixa e desabrocha pétala por pétala
   tl.fromTo(
     el.mainBloomingRose,
-    { opacity: 0, xPercent: -50, y: 15, scale: 0.25 },
-    { opacity: 1, xPercent: -50, y: -64, scale: 1, duration: 1.15, ease: "back.out(1.5)" },
-    1.62
+    { opacity: 0, xPercent: -50, y: 18, scale: 0.2 },
+    { opacity: 1, xPercent: -50, y: -72, scale: 1.14, duration: 1.45, ease: "back.out(1.4)" },
+    3.88
   );
   tl.fromTo(
     el.mainBloomingRose.querySelectorAll(".bloom-outer, .bloom-mid, .bloom-core"),
-    { scale: 0.3, rotation: -25 },
-    { scale: 1, rotation: 0, duration: 1.15, stagger: 0.15, ease: "elastic.out(1, 0.6)" },
-    1.68
+    { scale: 0.25, rotation: -28 },
+    { scale: 1, rotation: 0, duration: 1.45, stagger: 0.22, ease: "elastic.out(1, 0.65)" },
+    3.96
   );
 
-  // 3.20s: A caixa diminui e sobe para o topo (compact) e o painel "Caixa desbloqueada!" entra
+  // Segunda onda de rosas e faíscas douradas enquanto a rosa principal brilha no topo
   tl.add(() => {
+    spawnRoseAndPetalPhysicsBurst(2);
+    spawnBoxMiniPetals(10);
+  }, 4.48);
+
+  // 5.65s: A caixa recolhe suavemente para o topo (compact) e revela a Polaroid + Açaí
+  tl.add(() => {
+    el.giftBoxStage.classList.remove("opening-cinema");
     el.giftBoxStage.classList.add("compact");
     startPolaroidDeveloping();
     goToStep(el.stepUnlocked);
-  }, 3.2);
+  }, 5.65);
 }
 
 /* ============================================================================
@@ -2597,8 +2707,11 @@ function setupFinalCouponActions() {
    7.5 REINICIAR A CAIXA E A EXPERIÊNCIA COMPLETA ("VOLTAR AO COMEÇO")
    ============================================================================ */
 function resetBox() {
+  const giftTag = el.giftBox ? el.giftBox.querySelector(".box-gift-tag") : null;
   if (window.gsap) {
     window.gsap.killTweensOf([
+      el.giftBox,
+      giftTag,
       el.flyingKey,
       el.padlockShackle,
       el.boxPadlock,
@@ -2612,6 +2725,8 @@ function resetBox() {
     ]);
     window.gsap.set(
       [
+        el.giftBox,
+        giftTag,
         el.flyingKey,
         el.padlockShackle,
         el.boxPadlock,
@@ -2622,7 +2737,8 @@ function resetBox() {
         el.mainBloomingRose,
         el.boxBurstFlash,
         ...el.boxBow.querySelectorAll("*"),
-      ],
+        ...el.mainBloomingRose.querySelectorAll(".bloom-outer, .bloom-mid, .bloom-core"),
+      ].filter(Boolean),
       { clearProps: "all" }
     );
   }

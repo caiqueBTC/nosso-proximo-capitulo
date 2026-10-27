@@ -696,7 +696,25 @@ input:focus-visible,
   justify-content: center;
   perspective: 1000px;
   margin: 4px 0 2px;
-  transition: min-height 0.65s var(--ease-out-expo), transform 0.65s var(--ease-out-expo), margin 0.65s var(--ease-out-expo);
+  transition: min-height 0.75s var(--ease-out-expo), transform 0.75s var(--ease-out-expo), margin 0.75s var(--ease-out-expo);
+}
+
+.gift-box-stage.opening-cinema {
+  min-height: clamp(360px, 68dvh, 480px);
+  transform: scale(1.08);
+  margin: 18px 0 12px;
+}
+
+.gift-box-stage.opening-cinema .box-glow-backdrop {
+  width: 340px;
+  height: 340px;
+  background: radial-gradient(
+    circle,
+    rgba(243, 227, 189, 0.48) 0%,
+    rgba(215, 38, 61, 0.34) 48%,
+    rgba(18, 4, 10, 0) 76%
+  );
+  transition: width 0.8s ease, height 0.8s ease, background 0.8s ease;
 }
 
 .gift-box-stage.compact {

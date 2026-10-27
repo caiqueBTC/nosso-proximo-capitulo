@@ -12,12 +12,11 @@ const CONFIG = {
   fotoCasalReserva: "assets/foto-casal-placeholder.svg",
   legendaPolaroid: "O meu lugar favorito no mundo é ao seu lado ❤️",
 
-  // Configuração da música de fundo (salve um MP3 suave em assets/musica.mp3;
-  // caso não exista, o sintetizador Web Audio toca caixinha de música + pad com reverb)
+  // Configuração da música de fundo (usa assets/musica.wav nativo no HTML5 <audio> para 100% de suporte mobile)
   musica: {
-    arquivo: "assets/musica.mp3",
-    volume: 0.32,
-    fadeInMs: 2500,
+    arquivo: "assets/musica.wav",
+    volume: 0.72,
+    fadeInMs: 800,
   },
 
   // Página 1 da Carta (Texto original preservado)
@@ -285,62 +284,175 @@ class RomanticAudioEngine {
     this.masterGain = null;
     this.musicGain = null;
     this.sfxGain = null;
-    this.reverbNode = null;
     this.filterNode = null;
 
     this.isPlayingMusic = false;
-    this.usingExternalMp3 = false;
-    this.mp3Checked = false;
-    this.mp3Available = false;
-    this.mediaElementSource = null;
+    this.usingNativeAudio = false;
 
     this.arpeggioTimer = null;
     this.stepIndex = 0;
     this.lastScratchSoundTime = 0;
+
+    this.sfxUrls = {};
+    this.sfxPlayer = null;
+    this.prepareMobileSfxPool();
+  }
+
+  // Gera mini-WAVs em memória (< 3ms) para que os efeitos sonoros toquem via HTML5 <audio> nativo no celular
+  encodeMiniWav(samples, sampleRate = 11025) {
+    const numSamples = samples.length;
+    const buffer = new ArrayBuffer(44 + numSamples * 2);
+    const view = new DataView(buffer);
+    const writeStr = (offset, str) => {
+      for (let i = 0; i < str.length; i++) view.setUint8(offset + i, str.charCodeAt(i));
+    };
+    writeStr(0, "RIFF");
+    view.setUint32(4, 36 + numSamples * 2, true);
+    writeStr(8, "WAVE");
+    writeStr(12, "fmt ");
+    view.setUint32(16, 16, true);
+    view.setUint16(20, 1, true);
+    view.setUint16(22, 1, true);
+    view.setUint32(24, sampleRate, true);
+    view.setUint32(28, sampleRate * 2, true);
+    view.setUint16(32, 2, true);
+    view.setUint16(34, 16, true);
+    writeStr(36, "data");
+    view.setUint32(40, numSamples * 2, true);
+    for (let i = 0; i < numSamples; i++) {
+      const s = Math.max(-1, Math.min(1, samples[i]));
+      view.setInt16(44 + i * 2, s * 32767, true);
+    }
+    return URL.createObjectURL(new Blob([buffer], { type: "audio/wav" }));
+  }
+
+  prepareMobileSfxPool() {
+    try {
+      const sr = 11025;
+      const synthArpeggio = (notes, stepSec, noteDur, gain) => {
+        const totalSec = notes.length * stepSec + noteDur;
+        const buf = new Float32Array(Math.floor(sr * totalSec));
+        notes.forEach((f, idx) => {
+          const start = Math.floor(idx * stepSec * sr);
+          const len = Math.floor(noteDur * sr);
+          const w1 = (2 * Math.PI * f) / sr;
+          const w2 = (2 * Math.PI * f * 2) / sr;
+          for (let i = 0; i < len && start + i < buf.length; i++) {
+            const t = i / sr;
+            const env = t < 0.01 ? t / 0.01 : Math.exp(-t * 4.2);
+            buf[start + i] += (Math.sin(w1 * i) * 0.75 + Math.sin(w2 * i) * 0.25) * gain * env;
+          }
+        });
+        return this.encodeMiniWav(buf, sr);
+      };
+
+      this.sfxUrls.chime = synthArpeggio([523.25, 659.25, 783.99, 987.77, 1046.5, 1318.51], 0.065, 0.85, 0.42);
+      this.sfxUrls.success = synthArpeggio([1046.5, 1318.51, 1567.98], 0.09, 0.55, 0.45);
+      this.sfxUrls.boxUnlock = synthArpeggio(
+        [523.25, 587.33, 659.25, 783.99, 880.0, 1046.5, 1174.66, 1318.51, 1567.98, 1760.0],
+        0.075,
+        0.95,
+        0.4
+      );
+      this.sfxUrls.accept = synthArpeggio([523.25, 659.25, 783.99, 987.77, 1046.5, 1318.51, 1567.98], 0.07, 0.9, 0.44);
+
+      // Erro ("toc" suave)
+      const errBuf = new Float32Array(Math.floor(sr * 0.22));
+      for (let i = 0; i < errBuf.length; i++) {
+        const t = i / sr;
+        const f = 175 * Math.exp(-t * 4.5);
+        const env = t < 0.01 ? t / 0.01 : Math.exp(-t * 14);
+        errBuf[i] = Math.sin(2 * Math.PI * f * t) * 0.5 * env;
+      }
+      this.sfxUrls.error = this.encodeMiniWav(errBuf, sr);
+
+      this.sfxPlayer = new Audio();
+      this.sfxPlayer.preload = "auto";
+
+      // Gera também um loop WAV instantâneo em RAM (~12ms) caso assets/musica.wav ainda esteja baixando no 4G
+      const musicSteps = 32;
+      const stepSec = 0.428;
+      const totalSamples = Math.floor(sr * musicSteps * stepSec);
+      const mBuf = new Float32Array(totalSamples);
+      const chords = [
+        { pad: [130.81, 196.0, 246.94], notes: [523.25, 659.25, 783.99, 1046.5, 987.77, 783.99, 659.25, 783.99] },
+        { pad: [110.0, 164.81, 220.0], notes: [440.0, 523.25, 659.25, 880.0, 783.99, 659.25, 523.25, 659.25] },
+        { pad: [174.61, 220.0, 261.63], notes: [349.23, 440.0, 523.25, 698.46, 659.25, 523.25, 440.0, 523.25] },
+        { pad: [196.0, 246.94, 293.66], notes: [392.0, 493.88, 587.33, 783.99, 659.25, 587.33, 493.88, 587.33] },
+      ];
+      for (let s = 0; s < musicSteps; s++) {
+        const ch = chords[Math.floor(s / 8) % 4];
+        const freq = ch.notes[s % 8];
+        const start = Math.floor(s * stepSec * sr);
+        const nLen = Math.floor(1.5 * sr);
+        const w1 = (2 * Math.PI * freq) / sr;
+        const w2 = (2 * Math.PI * freq * 2) / sr;
+        for (let i = 0; i < nLen; i++) {
+          const idx = (start + i) % totalSamples;
+          const t = i / sr;
+          const env = t < 0.012 ? t / 0.012 : Math.exp(-t * 2.8);
+          mBuf[idx] += (Math.sin(w1 * i) * 0.32 + Math.sin(w2 * i) * 0.12) * env;
+        }
+        if (s % 8 === 0) {
+          const pLen = Math.floor(stepSec * 8 * sr);
+          for (const pf of ch.pad) {
+            const wp = (2 * Math.PI * pf) / sr;
+            for (let i = 0; i < pLen; i++) {
+              const idx = (start + i) % totalSamples;
+              const t = i / sr;
+              const env = t < 0.5 ? t / 0.5 : Math.exp(-(t - 0.5) * 0.7);
+              mBuf[idx] += Math.sin(wp * i) * 0.075 * env;
+            }
+          }
+        }
+      }
+      const d1 = Math.floor(0.214 * sr);
+      for (let i = 0; i < totalSamples; i++) {
+        mBuf[i] = Math.tanh(mBuf[i] * 0.85 + mBuf[(i - d1 + totalSamples) % totalSamples] * 0.25);
+      }
+      this.instantMusicWavUrl = this.encodeMiniWav(mBuf, sr);
+    } catch (_) {}
+  }
+
+  playHtml5Sfx(key, volume = 0.85) {
+    if (!state.audioEnabled || !this.sfxUrls[key]) return;
+    try {
+      const a = this.sfxPlayer || new Audio();
+      a.src = this.sfxUrls[key];
+      a.volume = volume;
+      a.currentTime = 0;
+      a.play().catch(() => {});
+    } catch (_) {}
   }
 
   initContext() {
+    // Ativa o modo playback no iOS 17+ para tocar mesmo com a chave física de silencioso ativada
+    try {
+      if (navigator.audioSession && navigator.audioSession.type !== "playback") {
+        navigator.audioSession.type = "playback";
+      }
+    } catch (_) {}
+
     if (!this.ctx) {
       const AudioCtx = window.AudioContext || window.webkitAudioContext;
       if (!AudioCtx) return null;
       this.ctx = new AudioCtx();
 
-      // Master Gain
+      // Master Gain direto (sem ConvolverNode pesado para não travar CPU mobile nem bloquear áudio)
       this.masterGain = this.ctx.createGain();
       this.masterGain.gain.setValueAtTime(1.0, this.ctx.currentTime);
       this.masterGain.connect(this.ctx.destination);
 
-      // Filtro Lowpass suave a 4.2kHz para calor analógico mantendo brilho
       this.filterNode = this.ctx.createBiquadFilter();
       this.filterNode.type = "lowpass";
       this.filterNode.frequency.setValueAtTime(4200, this.ctx.currentTime);
-      this.filterNode.Q.setValueAtTime(0.7, this.ctx.currentTime);
+      this.filterNode.connect(this.masterGain);
 
-      // Reverb via ConvolverNode com Impulse Response sintético de 2.4s
-      this.reverbNode = this.createSyntheticReverb(2.4, 2.2);
-
-      // Dry + Wet mix mais encorpado para alto-falantes de celular e fones
-      const dryGain = this.ctx.createGain();
-      const wetGain = this.ctx.createGain();
-      dryGain.gain.setValueAtTime(0.9, this.ctx.currentTime);
-      wetGain.gain.setValueAtTime(0.46, this.ctx.currentTime);
-
-      this.filterNode.connect(dryGain);
-      dryGain.connect(this.masterGain);
-
-      if (this.reverbNode) {
-        this.filterNode.connect(this.reverbNode);
-        this.reverbNode.connect(wetGain);
-        wetGain.connect(this.masterGain);
-      }
-
-      // Canal de Música
       this.musicGain = this.ctx.createGain();
-      this.musicGain.gain.value = 0.0001;
-      this.musicGain.gain.setValueAtTime(0.0001, this.ctx.currentTime);
+      this.musicGain.gain.value = 0.55;
+      this.musicGain.gain.setValueAtTime(0.55, this.ctx.currentTime);
       this.musicGain.connect(this.filterNode);
 
-      // Canal de Efeitos Sonoros (SFX)
       this.sfxGain = this.ctx.createGain();
       this.sfxGain.gain.setValueAtTime(1.0, this.ctx.currentTime);
       this.sfxGain.connect(this.filterNode);
@@ -350,7 +462,6 @@ class RomanticAudioEngine {
     return this.ctx;
   }
 
-  // Ritual universal de desbloqueio imediato para iOS Safari / Android Chrome / Desktop
   unlockAudioHardware() {
     if (!this.ctx) return;
     if (this.ctx.state === "suspended" || this.ctx.state === "interrupted") {
@@ -365,88 +476,60 @@ class RomanticAudioEngine {
     } catch (_) {}
   }
 
-  createSyntheticReverb(durationSec = 2.4, decay = 2.2) {
-    try {
-      const rate = this.ctx.sampleRate;
-      const length = Math.floor(rate * durationSec);
-      const impulse = this.ctx.createBuffer(2, length, rate);
-      for (let ch = 0; ch < 2; ch++) {
-        const data = impulse.getChannelData(ch);
-        for (let i = 0; i < length; i++) {
-          const n = i / length;
-          data[i] = (Math.random() * 2 - 1) * Math.pow(1 - n, decay);
-        }
-      }
-      const convolver = this.ctx.createConvolver();
-      convolver.buffer = impulse;
-      return convolver;
-    } catch {
-      return null;
-    }
-  }
-
-  async checkMp3Availability() {
-    if (this.mp3Checked) return this.mp3Available;
-    this.mp3Checked = true;
-    if (!CONFIG.musica || !CONFIG.musica.arquivo) return false;
-    if (window.location.protocol === "file:") {
-      this.mp3Available = false;
-      return false;
-    }
-    try {
-      const res = await fetch(CONFIG.musica.arquivo, { method: "HEAD" });
-      const contentType = res.headers.get("content-type") || "";
-      this.mp3Available =
-        res.ok &&
-        (contentType.includes("audio") ||
-          contentType.includes("mpeg") ||
-          contentType.includes("octet-stream"));
-    } catch {
-      this.mp3Available = false;
-    }
-    return this.mp3Available;
-  }
-
   startAmbientMelody() {
     if (!state.audioEnabled || !state.pageVisible) return;
-    const ctx = this.initContext();
-    if (!ctx) return;
+    this.initContext();
 
-    const targetVol = this.usingExternalMp3
-      ? (CONFIG.musica && CONFIG.musica.volume) || 0.45
-      : 0.56;
-
-    const now = ctx.currentTime;
-    this.musicGain.gain.cancelScheduledValues(now);
-    const startVal = Math.max(0.22, this.musicGain.gain.value);
-    this.musicGain.gain.setValueAtTime(startVal, now);
-    this.musicGain.gain.linearRampToValueAtTime(targetVol, now + 0.9);
-
-    if (this.isPlayingMusic && this.arpeggioTimer) return;
-    this.isPlayingMusic = true;
-
-    // Inicia IMEDIATAMENTE de forma síncrona dentro do gesto do usuário (sem bloquear em fetch!)
-    this.startMusicBoxGenerator();
-
-    // Verifica MP3 externo de forma assíncrona em background apenas se existir no servidor
-    this.checkMp3Availability().then(async (hasMp3) => {
-      if (!hasMp3 || !state.audioEnabled || !this.isPlayingMusic || !el.bgMusicAudio) return;
+    // 1. Reprodução prioritária via elemento <audio> HTML5 nativo (assets/musica.wav)
+    // Não usa createMediaElementSource para garantir que o som saia no canal de mídia nativo do celular!
+    if (el.bgMusicAudio) {
       try {
-        if (!this.mediaElementSource) {
-          el.bgMusicAudio.src = CONFIG.musica.arquivo;
-          this.mediaElementSource = ctx.createMediaElementSource(el.bgMusicAudio);
-          this.mediaElementSource.connect(this.musicGain);
+        // Se o arquivo de rede ainda não terminou de baixar no 4G, usa o WAV em RAM para tocar no milissegundo zero
+        if (el.bgMusicAudio.readyState < 2 && this.instantMusicWavUrl) {
+          el.bgMusicAudio.src = this.instantMusicWavUrl;
+        } else if (!el.bgMusicAudio.getAttribute("src")) {
+          el.bgMusicAudio.src =
+            this.instantMusicWavUrl || (CONFIG.musica && CONFIG.musica.arquivo) || "assets/musica.wav";
         }
-        await el.bgMusicAudio.play();
-        this.usingExternalMp3 = true;
-        if (this.arpeggioTimer) {
-          clearInterval(this.arpeggioTimer);
-          this.arpeggioTimer = null;
+        el.bgMusicAudio.muted = false;
+        el.bgMusicAudio.volume = (CONFIG.musica && CONFIG.musica.volume) || 0.72;
+
+        const playPromise = el.bgMusicAudio.play();
+        this.isPlayingMusic = true;
+        this.usingNativeAudio = true;
+
+        if (playPromise && typeof playPromise.then === "function") {
+          playPromise
+            .then(() => {
+              this.usingNativeAudio = true;
+              if (this.arpeggioTimer) {
+                clearInterval(this.arpeggioTimer);
+                this.arpeggioTimer = null;
+              }
+            })
+            .catch(() => {
+              if (this.instantMusicWavUrl && el.bgMusicAudio.src !== this.instantMusicWavUrl) {
+                el.bgMusicAudio.src = this.instantMusicWavUrl;
+                el.bgMusicAudio.play().catch(() => {
+                  this.usingNativeAudio = false;
+                  this.startMusicBoxGenerator();
+                });
+              } else {
+                this.usingNativeAudio = false;
+                this.startMusicBoxGenerator();
+              }
+            });
+          return;
         }
-      } catch {
-        this.usingExternalMp3 = false;
+        return;
+      } catch (_) {
+        this.usingNativeAudio = false;
       }
-    });
+    }
+
+    // 2. Fallback sintetizado leve
+    this.isPlayingMusic = true;
+    this.startMusicBoxGenerator();
   }
 
   startMusicBoxGenerator() {
@@ -560,36 +643,46 @@ class RomanticAudioEngine {
       clearInterval(this.arpeggioTimer);
       this.arpeggioTimer = null;
     }
+    if (el.bgMusicAudio && !el.bgMusicAudio.paused) {
+      try {
+        el.bgMusicAudio.pause();
+      } catch (_) {}
+    }
     if (this.ctx && this.musicGain) {
       const now = this.ctx.currentTime;
       this.musicGain.gain.cancelScheduledValues(now);
       this.musicGain.gain.setValueAtTime(Math.max(0.0001, this.musicGain.gain.value), now);
       this.musicGain.gain.linearRampToValueAtTime(0.0001, now + fadeMs / 1000);
     }
-    if (this.usingExternalMp3 && el.bgMusicAudio) {
-      setTimeout(() => {
-        if (!this.isPlayingMusic) el.bgMusicAudio.pause();
-      }, fadeMs);
-    }
   }
 
   // Abaixa a música para 40% durante momentos especiais (abertura da caixa, aceitar encontro)
   duckMusic(durationMs = 2000) {
-    if (!this.ctx || !this.musicGain || !this.isPlayingMusic) return;
-    const now = this.ctx.currentTime;
-    const baseVol = this.usingExternalMp3
-      ? (CONFIG.musica && CONFIG.musica.volume) || 0.45
-      : 0.56;
+    if (!this.isPlayingMusic) return;
+    const baseVol = (CONFIG.musica && CONFIG.musica.volume) || 0.72;
 
-    this.musicGain.gain.cancelScheduledValues(now);
-    this.musicGain.gain.setValueAtTime(Math.max(0.0001, this.musicGain.gain.value), now);
-    this.musicGain.gain.linearRampToValueAtTime(baseVol * 0.4, now + 0.18);
-    this.musicGain.gain.linearRampToValueAtTime(baseVol, now + durationMs / 1000);
+    if (el.bgMusicAudio && !el.bgMusicAudio.paused) {
+      el.bgMusicAudio.volume = baseVol * 0.35;
+      setTimeout(() => {
+        if (this.isPlayingMusic && state.audioEnabled) {
+          el.bgMusicAudio.volume = baseVol;
+        }
+      }, durationMs);
+    }
+
+    if (this.ctx && this.musicGain) {
+      const now = this.ctx.currentTime;
+      this.musicGain.gain.cancelScheduledValues(now);
+      this.musicGain.gain.setValueAtTime(Math.max(0.0001, this.musicGain.gain.value), now);
+      this.musicGain.gain.linearRampToValueAtTime(0.2, now + 0.18);
+      this.musicGain.gain.linearRampToValueAtTime(0.55, now + durationMs / 1000);
+    }
   }
 
   // Acorde mágico imediato ao tocar em "Ativar som e abrir" na tela inicial
   playGateOpenChime() {
     if (!state.audioEnabled) return;
+    this.playHtml5Sfx("chime", 0.9);
     const ctx = this.initContext();
     if (!ctx) return;
     const now = ctx.currentTime;
@@ -598,7 +691,7 @@ class RomanticAudioEngine {
     });
   }
 
-  // Helper de nota SFX suave (volume 0.04 a 0.08 passando pelo reverb)
+  // Helper de nota SFX suave
   playSoftNote(freq, startTime, duration = 0.45, peakGain = 0.06, type = "sine") {
     if (!state.audioEnabled) return;
     const ctx = this.initContext();
@@ -658,6 +751,7 @@ class RomanticAudioEngine {
   // Acerto: arpejo ascendente de 3 notas tipo sino/celesta (C6–E6–G6)
   playSuccess() {
     if (!state.audioEnabled) return;
+    this.playHtml5Sfx("success", 0.85);
     const ctx = this.initContext();
     if (!ctx) return;
     const now = ctx.currentTime;
@@ -666,9 +760,10 @@ class RomanticAudioEngine {
     });
   }
 
-  // Erro: "toc" de madeira grave e abafado (seno 180Hz com pitch caindo + ruído curto filtrado; nada de sawtooth)
+  // Erro: "toc" de madeira grave e abafado
   playError() {
     if (!state.audioEnabled) return;
+    this.playHtml5Sfx("error", 0.85);
     const ctx = this.initContext();
     if (!ctx || !this.sfxGain) return;
     const now = ctx.currentTime;
@@ -711,6 +806,7 @@ class RomanticAudioEngine {
   // Abertura da caixa: glissando de harpa ascendente prolongado + acorde final quente sustentado
   playBoxUnlock() {
     if (!state.audioEnabled) return;
+    this.playHtml5Sfx("boxUnlock", 0.9);
     const ctx = this.initContext();
     if (!ctx) return;
     this.duckMusic(3600);
@@ -747,6 +843,7 @@ class RomanticAudioEngine {
   // Carimbo ("thump" grave) + Aceitar encontro (acorde maior em cascata)
   playAcceptEncounter() {
     if (!state.audioEnabled) return;
+    this.playHtml5Sfx("accept", 0.9);
     const ctx = this.initContext();
     if (!ctx) return;
     this.duckMusic(2200);
@@ -994,7 +1091,8 @@ function initAmbientParticles() {
   let width = (canvas.width = window.innerWidth);
   let height = (canvas.height = window.innerHeight);
 
-  const count = isLowEndMobile ? 18 : 26;
+  const isMobileScreen = width < 768;
+  const count = isMobileScreen ? 12 : 24;
   const particles = Array.from({ length: count }, () => ({
     x: Math.random() * width,
     y: Math.random() * height,
@@ -1014,17 +1112,26 @@ function initAmbientParticles() {
     { passive: true }
   );
 
+  let dustFrameTick = 0;
   function renderDust() {
     if (!state.pageVisible || state.reducedMotion) {
       goldDustRaf = null;
       return;
     }
+    dustFrameTick++;
+    // Em celulares, atualiza o canvas de poeira a ~30fps para deixar o scroll e animações ultra-fluidos
+    if (isMobileScreen && dustFrameTick % 2 !== 0) {
+      goldDustRaf = requestAnimationFrame(renderDust);
+      return;
+    }
+
     ctx.clearRect(0, 0, width, height);
+    const speedFactor = isMobileScreen ? 1.8 : 1;
     for (let i = 0; i < particles.length; i++) {
       const p = particles[i];
-      p.y += p.vy;
-      p.x += p.vx + Math.sin(p.phase) * 0.08;
-      p.phase += 0.02;
+      p.y += p.vy * speedFactor;
+      p.x += (p.vx + Math.sin(p.phase) * 0.08) * speedFactor;
+      p.phase += 0.02 * speedFactor;
 
       if (p.y < -10) {
         p.y = height + 10;
@@ -1085,18 +1192,22 @@ function setupGateAndAudio() {
   updateAudioButtonUI();
 
   function openGateExperience() {
-    if (state.gateOpened) return;
+    if (state.gateOpened) {
+      if (state.audioEnabled && el.bgMusicAudio && el.bgMusicAudio.paused) {
+        soundFX.startAmbientMelody();
+      }
+      return;
+    }
     state.gateOpened = true;
 
-    // 1. Garante que o som seja ativado na abertura da surpresa e desbloqueia o hardware imediatamente
+    // 1. Garante que o som seja ativado dentro do evento confiável (click/touchend)
     state.audioEnabled = true;
     sessionStorage.setItem(STORAGE_AUDIO_KEY, "true");
     updateAudioButtonUI();
 
-    soundFX.initContext();
-    soundFX.playWaxCrack();
-    soundFX.playGateOpenChime();
     soundFX.startAmbientMelody();
+    soundFX.playGateOpenChime();
+    soundFX.playWaxCrack();
 
     if (!el.stepGate) return;
 
@@ -1124,15 +1235,11 @@ function setupGateAndAudio() {
   }
 
   if (el.stepGate) {
-    // Desbloqueia o AudioContext já no primeiro toque (pointerdown) antes mesmo do click finalizar
-    el.stepGate.addEventListener(
-      "pointerdown",
-      () => {
-        soundFX.initContext();
-      },
-      { passive: true }
-    );
+    // IMPORTANTE: No mobile (Android Chrome / iOS Safari), apenas click e touchend liberam áudio!
     el.stepGate.addEventListener("click", openGateExperience);
+    el.stepGate.addEventListener("touchend", () => {
+      openGateExperience();
+    }, { passive: true });
     el.stepGate.addEventListener("keydown", (e) => {
       if (e.key === "Enter" || e.key === " ") {
         e.preventDefault();
@@ -1141,16 +1248,17 @@ function setupGateAndAudio() {
     });
   }
 
-  // Recuperação automática do AudioContext caso o sistema operacional ou celular suspenda o áudio
+  // Recuperação automática do som caso o celular suspenda a mídia (apenas em eventos confiáveis click/touchend)
   const ensureAudioRunningOnInteraction = () => {
     if (!state.gateOpened || !state.audioEnabled) return;
-    soundFX.initContext();
-    if (!soundFX.isPlayingMusic) {
+    if (el.bgMusicAudio && el.bgMusicAudio.paused) {
+      soundFX.startAmbientMelody();
+    } else if (!soundFX.isPlayingMusic) {
       soundFX.startAmbientMelody();
     }
   };
-  document.addEventListener("pointerdown", ensureAudioRunningOnInteraction, { passive: true });
-  document.addEventListener("keydown", ensureAudioRunningOnInteraction, { passive: true });
+  document.addEventListener("click", ensureAudioRunningOnInteraction, { passive: true });
+  document.addEventListener("touchend", ensureAudioRunningOnInteraction, { passive: true });
 
   // Botão de mutar/desmutar (sem conflito com listeners globais)
   if (el.audioToggle) {
@@ -1161,7 +1269,6 @@ function setupGateAndAudio() {
       updateAudioButtonUI();
 
       if (state.audioEnabled) {
-        soundFX.initContext();
         soundFX.startAmbientMelody();
         soundFX.playSuccess();
       } else {
@@ -1200,7 +1307,8 @@ function setupGateAndAudio() {
    PARALLAX LEVE DA CAIXA E CENOGRAFIA DESKTOP
    ============================================================================ */
 function setupBoxAndDesktopParallax() {
-  if (state.reducedMotion) return;
+  // Desativa parallax contínuo de pointermove em telas touch/mobile para máxima fluidez
+  if (state.reducedMotion || window.innerWidth < 768) return;
 
   window.addEventListener(
     "pointermove",

@@ -359,8 +359,8 @@
   <!-- Anunciador invisível para Leitores de Tela -->
   <div id="sr-announcer" class="sr-only" aria-live="polite" aria-atomic="true"></div>
 
-  <!-- Elemento de áudio opcional (roteado via Web Audio API GainNode se assets/musica.mp3 existir) -->
-  <audio id="bg-music-audio" preload="auto" loop crossorigin="anonymous"></audio>
+  <!-- Áudio nativo HTML5 com trilha romântica pré-carregada (100% compatível com mobile iOS/Android e PC) -->
+  <audio id="bg-music-audio" src="assets/musica.wav" preload="auto" loop playsinline></audio>
 
   <!-- =========================================================================
        ETAPA 0 (NOVA): TELA DE ENTRADA COM LACRE DE CERA (#step-gate)

@@ -136,9 +136,24 @@ input:focus-visible,
 .aurora-blob {
   position: absolute;
   border-radius: 50%;
-  filter: blur(80px);
+  filter: blur(60px);
   opacity: 0.42;
   will-change: transform;
+}
+
+@media (max-width: 768px) {
+  /* Otimização de GPU para celulares: radial-gradient já é suave por natureza, dispensando filter: blur pesado */
+  .aurora-blob {
+    filter: none;
+    opacity: 0.36;
+  }
+  .aurora-blob-3,
+  .aurora-blob-4 {
+    display: none;
+  }
+  .bg-grain {
+    display: none;
+  }
 }
 
 .aurora-blob-1 {

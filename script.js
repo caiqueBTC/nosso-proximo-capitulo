@@ -37,7 +37,7 @@ const CONFIG = {
 
   // 5. PÁGINA 3 DA CARTA (Santa Teresinha Cartoon + Flor Branca Digital)
   santaTeresinha: {
-    imagemUrl: "assets/santa-teresinha-cartoon.png",
+    imagemUrl: "assets/santa-teresinha-cartoon.webp",
     imagemReservaUrl: "assets/santa-teresinha-cartoon.svg",
     titulo: "A flor branca que você pediu a Santa Teresinha 🤍✨",
     paragrafos: [

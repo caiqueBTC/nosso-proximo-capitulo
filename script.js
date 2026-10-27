@@ -78,7 +78,11 @@ const CONFIG = {
     promessa:
       "Agora essa caixa digital guarda uma promessa: a nossa caminhada ainda tem muitos momentos bonitos pela frente.",
     declaracao:
-      "Eu te amo, Isabela. Hoje, amanhã e em todos os próximos capítulos. ❤️"
+      "Eu te amo, Isabela. Hoje, amanhã e em todos os próximos capítulos. ❤️",
+    fotoFinalUrl: "assets/foto-final.jpg",
+    whatsappNumero: "5512991882850",
+    whatsappMensagem:
+      "Amor, passei por todos os desafios, abri o nosso convite e já garanti meu prêmio da raspadinha! 🍨💌 (Sorte que nas perguntas não tinha \"quem ama mais\", porque essa você sabe que eu ganhava fácil 😌❤️) Te amo! Quando vamos tomar nosso açaí?"
   }
 };
 
@@ -233,11 +237,13 @@ const el = {
 
   couponTitle: document.getElementById("coupon-title"),
   couponDescription: document.getElementById("coupon-description"),
+  acaiCouponCard: document.getElementById("acai-coupon-card"),
   btnAcceptDate: document.getElementById("btn-accept-date"),
   couponActions: document.getElementById("coupon-actions"),
   couponStamp: document.getElementById("coupon-stamp"),
 
   finalPromiseCard: document.getElementById("final-promise-card"),
+  finalPhoto: document.getElementById("final-photo"),
   finalTitle: document.getElementById("final-title"),
   finalThanks: document.getElementById("final-thanks"),
   finalPromise: document.getElementById("final-promise"),
@@ -249,6 +255,8 @@ const el = {
   counterMinutes: document.getElementById("counter-minutes"),
   counterMesversarioBadge: document.getElementById("counter-mesversario-badge"),
 
+  btnWhatsapp: document.getElementById("btn-whatsapp"),
+  finaleOverlay: document.getElementById("finale-overlay"),
   btnReadAgain: document.getElementById("btn-read-again"),
   btnRestart: document.getElementById("btn-restart"),
 };
@@ -789,7 +797,7 @@ function initPersonalization() {
     if (el.couponDescription) el.couponDescription.textContent = CONFIG.cupomAcai.descricao;
   }
 
-  // Mensagem final de agradecimento
+  // Mensagem final de agradecimento + Foto Final + Botão do WhatsApp
   if (CONFIG.agradecimentoFinal) {
     if (el.finalTitle) el.finalTitle.textContent = CONFIG.agradecimentoFinal.titulo;
     if (el.finalThanks) el.finalThanks.textContent = CONFIG.agradecimentoFinal.agradecimento;
@@ -802,6 +810,16 @@ function initPersonalization() {
       if (el.finalDeclaration) el.finalDeclaration.textContent = fullDecl.slice(prefix.length).trim();
     } else {
       if (el.finalDeclaration) el.finalDeclaration.textContent = fullDecl;
+    }
+
+    if (el.finalPhoto && CONFIG.agradecimentoFinal.fotoFinalUrl) {
+      el.finalPhoto.src = CONFIG.agradecimentoFinal.fotoFinalUrl;
+    }
+
+    if (el.btnWhatsapp && CONFIG.agradecimentoFinal.whatsappNumero) {
+      const cleanPhone = String(CONFIG.agradecimentoFinal.whatsappNumero).replace(/\D/g, "");
+      const msg = CONFIG.agradecimentoFinal.whatsappMensagem || "";
+      el.btnWhatsapp.href = `https://wa.me/${cleanPhone}?text=${encodeURIComponent(msg)}`;
     }
   }
 
@@ -2843,6 +2861,62 @@ function startRelationshipCounter(animateCountUp = true) {
   relationshipCounterTimer = setInterval(() => updateValues(false), 60000);
 }
 
+/* Corações flutuantes contínuos no capítulo final */
+let finaleFloatingHeartsTimer = null;
+let activeFinaleHearts = 0;
+
+function spawnFinaleFloatingHeart() {
+  if (
+    state.reducedMotion ||
+    !state.pageVisible ||
+    !el.celebrationLayer ||
+    !state.dateAccepted ||
+    activeFinaleHearts >= 14
+  ) {
+    return;
+  }
+
+  activeFinaleHearts++;
+  const item = document.createElement("div");
+  item.className = "finale-float-heart";
+  const isSparkle = Math.random() < 0.28;
+  item.innerHTML = isSparkle
+    ? `<svg viewBox="0 0 24 24"><use href="#sparkle" /></svg>`
+    : `<svg viewBox="0 0 24 24" style="color: var(--crimson-400)"><use href="#heart" /></svg>`;
+
+  const size = isSparkle ? 14 + Math.random() * 6 : 16 + Math.random() * 10;
+  item.style.width = `${size.toFixed(0)}px`;
+  item.style.height = `${size.toFixed(0)}px`;
+  item.style.left = `${(Math.random() * 88 + 6).toFixed(1)}%`;
+  item.style.setProperty("--sway", `${((Math.random() - 0.5) * 64).toFixed(1)}px`);
+  item.style.setProperty("--heart-alpha", (0.35 + Math.random() * 0.35).toFixed(2));
+  const dur = 5.2 + Math.random() * 2.8;
+  item.style.animationDuration = `${dur.toFixed(2)}s`;
+
+  el.celebrationLayer.appendChild(item);
+  setTimeout(() => {
+    item.remove();
+    activeFinaleHearts = Math.max(0, activeFinaleHearts - 1);
+  }, dur * 1000 + 120);
+}
+
+function startFinaleFloatingHearts() {
+  stopFinaleFloatingHearts();
+  if (state.reducedMotion || !el.celebrationLayer) return;
+
+  for (let i = 0; i < 5; i++) {
+    setTimeout(spawnFinaleFloatingHeart, i * 320);
+  }
+  finaleFloatingHeartsTimer = setInterval(spawnFinaleFloatingHeart, 780);
+}
+
+function stopFinaleFloatingHearts() {
+  if (finaleFloatingHeartsTimer) {
+    clearInterval(finaleFloatingHeartsTimer);
+    finaleFloatingHeartsTimer = null;
+  }
+}
+
 function setupFinalCouponActions() {
   el.btnAcceptDate.addEventListener("click", () => {
     if (state.dateAccepted) return;
@@ -2853,30 +2927,57 @@ function setupFinalCouponActions() {
 
     el.couponActions.hidden = true;
     el.couponStamp.hidden = false;
+    if (el.acaiCouponCard) {
+      el.acaiCouponCard.classList.add("coupon-sealed");
+    }
 
     if (!state.reducedMotion) {
       document.body.classList.add("screen-stamp-shake");
       setTimeout(() => document.body.classList.remove("screen-stamp-shake"), 380);
     }
 
-    triggerCelebrationShower(36);
+    triggerCelebrationShower(40);
+    startFinaleFloatingHearts();
 
-    el.finalPromiseCard.hidden = false;
-    el.finalPromiseCard.classList.remove("handwriting-active");
-    void el.finalPromiseCard.offsetWidth;
-    el.finalPromiseCard.classList.add("handwriting-active");
+    const showFinalPromiseCard = () => {
+      el.finalPromiseCard.hidden = false;
+      el.finalPromiseCard.classList.remove("finale-in", "handwriting-active");
+      void el.finalPromiseCard.offsetWidth;
+      el.finalPromiseCard.classList.add("finale-in", "handwriting-active");
 
-    startRelationshipCounter(true);
+      startRelationshipCounter(true);
 
-    setTimeout(() => {
-      const rect = el.finalPromiseCard.getBoundingClientRect();
-      if (rect.bottom > window.innerHeight) {
+      setTimeout(() => {
         el.finalPromiseCard.scrollIntoView({
           behavior: state.reducedMotion ? "auto" : "smooth",
-          block: "center",
+          block: "start",
         });
-      }
-    }, 220);
+      }, 140);
+    };
+
+    if (state.reducedMotion || !el.finaleOverlay) {
+      showFinalPromiseCard();
+      return;
+    }
+
+    // Após o impacto do carimbo (~520ms), abre a cortina romântica com o coração desenhado à mão
+    setTimeout(() => {
+      el.finaleOverlay.hidden = false;
+      void el.finaleOverlay.offsetWidth;
+      el.finaleOverlay.classList.add("is-active");
+    }, 520);
+
+    // Prepara o cartão final por trás da cortina e depois recolhe a cortina suavemente
+    setTimeout(() => {
+      showFinalPromiseCard();
+    }, 2650);
+
+    setTimeout(() => {
+      el.finaleOverlay.classList.remove("is-active");
+      setTimeout(() => {
+        el.finaleOverlay.hidden = true;
+      }, 620);
+    }, 3150);
   });
 
   // Botão "Ler a carta novamente" -> Volta para a Página 1 da Carta
@@ -2941,6 +3042,7 @@ function resetBox() {
 
 function resetExperience() {
   stopContinuousWhiteFlowers();
+  stopFinaleFloatingHearts();
   if (relationshipCounterTimer) {
     clearInterval(relationshipCounterTimer);
     relationshipCounterTimer = null;
@@ -3013,11 +3115,16 @@ function resetExperience() {
   // Reseta Raspadinha, Cupom e Card Final
   el.scratchCanvas.classList.remove("scratched-complete");
   if (el.btnRevealScratch) el.btnRevealScratch.hidden = false;
+  if (el.acaiCouponCard) el.acaiCouponCard.classList.remove("coupon-sealed");
   el.btnAcceptDate.disabled = true;
   el.couponActions.hidden = false;
   el.couponStamp.hidden = true;
   el.finalPromiseCard.hidden = true;
-  el.finalPromiseCard.classList.remove("handwriting-active");
+  el.finalPromiseCard.classList.remove("finale-in", "handwriting-active");
+  if (el.finaleOverlay) {
+    el.finaleOverlay.classList.remove("is-active");
+    el.finaleOverlay.hidden = true;
+  }
   if (el.celebrationLayer) el.celebrationLayer.innerHTML = "";
 
   setupIntroSplitName();

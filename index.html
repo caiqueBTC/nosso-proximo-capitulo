@@ -1048,21 +1048,38 @@
           Ou toque aqui para revelar o cupom direto
         </button>
 
-        <!-- Cartão de Agradecimento Final + Declaração Manuscrita + Contador Ao Vivo -->
+        <!-- Cartão de Agradecimento Final + Foto + Declaração Manuscrita + Contador + WhatsApp -->
         <div id="final-promise-card" class="final-promise-card" role="status" aria-live="polite" hidden>
-          <div class="final-ornament" aria-hidden="true">
-            <svg viewBox="0 0 160 28"><use href="#ornament-sprig" /></svg>
-          </div>
-          <h4 class="final-promise-title" id="final-title">Encontro aceito! 💜</h4>
-          <p class="final-promise-text" id="final-thanks">
+          <!-- Foto final do casal em moldura de arco minimalista -->
+          <figure class="final-photo-frame final-reveal-item" style="--i: 0">
+            <div class="final-photo-arch">
+              <picture>
+                <source srcset="assets/foto-final.webp" type="image/webp" />
+                <img
+                  id="final-photo"
+                  class="final-photo"
+                  src="assets/foto-final.jpg"
+                  alt="Caique e Isabela sorrindo juntos"
+                  width="576"
+                  height="720"
+                  loading="lazy"
+                  decoding="async"
+                />
+              </picture>
+            </div>
+            <figcaption class="final-photo-caption">Caique &amp; Isabela</figcaption>
+          </figure>
+
+          <h4 class="final-promise-title final-reveal-item" id="final-title" style="--i: 1">Encontro aceito! 💜</h4>
+          <p class="final-promise-text final-reveal-item" id="final-thanks" style="--i: 2">
             Obrigado por ter chegado até aqui, por cada sorriso seu e por fazer os meus dias tão mais felizes.
           </p>
-          <p class="final-promise-text" id="final-promise">
+          <p class="final-promise-text final-reveal-item" id="final-promise" style="--i: 3">
             Agora essa caixa digital guarda uma promessa: a nossa caminhada ainda tem muitos momentos bonitos pela frente.
           </p>
 
           <!-- "Eu te amo, Isabela" escrito à mão com máscara progressiva + restante da declaração -->
-          <div class="final-handwritten-wrap">
+          <div class="final-handwritten-wrap final-reveal-item" style="--i: 4">
             <p class="final-handwritten-love" id="final-handwritten-love">
               Eu te amo, Isabela.
             </p>
@@ -1072,7 +1089,7 @@
           </div>
 
           <!-- Contador "Juntos há X dias, Y horas e Z minutos" -->
-          <div class="relationship-counter" id="relationship-counter">
+          <div class="relationship-counter final-reveal-item" id="relationship-counter" style="--i: 5">
             <span class="counter-overline">NOSSO TEMPO JUNTOS</span>
             <p class="counter-main-text" id="counter-main-text">
               Juntos há <strong id="counter-days">0</strong> dias, <strong id="counter-hours">0</strong> horas e <strong id="counter-minutes">0</strong> minutos
@@ -1082,12 +1099,29 @@
             </span>
           </div>
 
-          <div class="final-restart-actions">
-            <button type="button" id="btn-read-again" class="btn-secondary">
-              <svg class="btn-svg-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#book" /></svg>
+          <!-- Enviar mensagem para o Caique no WhatsApp -->
+          <div class="final-whatsapp-block final-reveal-item" style="--i: 6">
+            <p class="final-whatsapp-hint">Agora conta pra ele que você conseguiu:</p>
+            <a
+              id="btn-whatsapp"
+              class="btn-whatsapp"
+              href="https://wa.me/5512991882850"
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              <svg class="whatsapp-icon" viewBox="0 0 24 24" aria-hidden="true">
+                <path fill="currentColor" d="M12.04 2C6.58 2 2.13 6.45 2.13 11.91c0 1.75.46 3.45 1.32 4.95L2.05 22l5.25-1.38a9.9 9.9 0 0 0 4.74 1.21h.01c5.46 0 9.91-4.45 9.91-9.91 0-2.65-1.03-5.14-2.9-7.01A9.82 9.82 0 0 0 12.04 2Zm0 18.15h-.01a8.23 8.23 0 0 1-4.19-1.15l-.3-.18-3.12.82.83-3.04-.2-.31a8.2 8.2 0 0 1-1.26-4.38c0-4.54 3.7-8.24 8.25-8.24 2.2 0 4.27.86 5.83 2.42a8.18 8.18 0 0 1 2.41 5.83c0 4.54-3.7 8.23-8.24 8.23Zm4.52-6.16c-.25-.12-1.47-.72-1.69-.81-.23-.08-.39-.12-.56.12-.16.25-.64.81-.79.98-.14.16-.29.18-.54.06-.25-.12-1.05-.39-1.99-1.23-.74-.66-1.23-1.47-1.38-1.72-.14-.25-.02-.38.11-.5.11-.11.25-.29.37-.43.12-.14.16-.25.25-.41.08-.16.04-.31-.02-.43-.06-.12-.56-1.34-.76-1.84-.2-.48-.41-.42-.56-.42h-.48c-.16 0-.43.06-.66.31-.23.25-.86.85-.86 2.07 0 1.22.89 2.4 1.01 2.56.12.16 1.75 2.67 4.23 3.74.59.26 1.05.41 1.41.52.59.19 1.13.16 1.56.1.48-.07 1.47-.6 1.67-1.18.21-.58.21-1.07.14-1.18-.06-.1-.22-.16-.47-.28Z" />
+              </svg>
+              <span>Enviar mensagem pro Caique</span>
+            </a>
+          </div>
+
+          <div class="final-restart-actions final-reveal-item" style="--i: 7">
+            <button type="button" id="btn-read-again" class="btn-final-link">
               <span>Ler a carta novamente</span>
             </button>
-            <button type="button" id="btn-restart" class="btn-ghost">
+            <span class="final-links-dot" aria-hidden="true"></span>
+            <button type="button" id="btn-restart" class="btn-final-link">
               <span>Voltar ao começo</span>
             </button>
           </div>
@@ -1096,5 +1130,18 @@
 
     </div>
   </main>
+
+  <!-- Cortina final: coração desenhado à mão ao confirmar o encontro -->
+  <div class="finale-overlay" id="finale-overlay" aria-hidden="true" hidden>
+    <div class="finale-glow"></div>
+    <svg class="finale-heart" viewBox="0 0 120 110">
+      <path
+        class="finale-heart-path"
+        d="M60 100 C60 100 10 68 10 36 C10 20 22 8 38 8 C48 8 56 14 60 22 C64 14 72 8 82 8 C98 8 110 20 110 36 C110 68 60 100 60 100 Z"
+      />
+    </svg>
+    <p class="finale-text">Encontro marcado</p>
+    <p class="finale-subtext">Isabela &amp; Caique</p>
+  </div>
 </body>
 </html>

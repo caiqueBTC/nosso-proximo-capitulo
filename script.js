@@ -702,8 +702,13 @@ const soundFX = new RomanticAudioEngine();
 function initPersonalization() {
   // Foto do casal com fallback em uma única carga (sem carregar 2x)
   if (el.couplePhoto) {
+    const webpSource = document.getElementById("couple-photo-webp");
+    if (webpSource && CONFIG.fotoCasalUrl !== "assets/foto-casal.jpg") {
+      webpSource.removeAttribute("srcset");
+    }
     el.couplePhoto.onerror = function handlePhotoFallback() {
       el.couplePhoto.onerror = null;
+      if (webpSource) webpSource.removeAttribute("srcset");
       el.couplePhoto.src = CONFIG.fotoCasalReserva;
     };
     el.couplePhoto.src = CONFIG.fotoCasalUrl;

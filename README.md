@@ -8,9 +8,8 @@ Experiência romântica, interativa e mobile-first criada para a Isabela com o c
 
 1. **Texto da Página 2 da Carta (`CONFIG.cartaPagina2`)**:
    - No topo de [`script.js`](./script.js), a chave `CONFIG.cartaPagina2.paragrafos` ainda está com **Lorem Ipsum temporário**. Substitua pelos seus parágrafos reais antes de enviar!
-2. **Foto do casal na Polaroid (`assets/foto-casal.jpg`)**:
-   - Salve a foto escolhida na pasta `assets/` com o nome **`foto-casal.jpg`**.
-   - Enquanto `assets/foto-casal.jpg` não existir, o site usa automaticamente a arte reserva `assets/foto-casal-placeholder.svg` (sem carregar imagens duas vezes).
+2. **Foto do casal na Polaroid (`assets/foto-casal.jpg` e `assets/foto-casal.webp`)**:
+   - ✅ **Já configurada!** A foto de vocês foi recortada em proporção Polaroid 1:1 com ajuste sutil de cor e salva em `assets/foto-casal.jpg` (109 KB) e `assets/foto-casal.webp` (56 KB).
    - **Easter Egg**: ao tocar na foto Polaroid, ela vira em 3D revelando o verso manuscrito com a data do início do namoro (`27/09/2026`).
 3. **Música de fundo opcional (`assets/musica.mp3`)**:
    - Caso queira usar uma faixa MP3 específica (ex.: piano solo romântico, caixinha de música + cordas, 60–80 BPM do *Pixabay Music*, *YouTube Audio Library* ou um cover instrumental da música de vocês), exporte em MP3 128kbps (≤ 3 MB) e salve como **`assets/musica.mp3`**.

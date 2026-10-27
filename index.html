@@ -727,12 +727,15 @@
             <!-- Frente da Polaroid -->
             <div class="polaroid-face polaroid-front">
               <div class="polaroid-photo-frame" id="polaroid-photo-frame">
-                <img
-                  id="couple-photo"
-                  src="assets/foto-casal.jpg"
-                  alt="Foto especial de Caique e Isabela juntos"
-                  class="polaroid-img"
-                />
+                <picture>
+                  <source id="couple-photo-webp" srcset="assets/foto-casal.webp" type="image/webp" />
+                  <img
+                    id="couple-photo"
+                    src="assets/foto-casal.jpg"
+                    alt="Foto especial de Caique e Isabela juntos"
+                    class="polaroid-img"
+                  />
+                </picture>
               </div>
               <p class="polaroid-caption" id="polaroid-caption">
                 O meu lugar favorito no mundo é ao seu lado ❤️

@@ -581,14 +581,14 @@
         </div>
         <div class="step-badge stagger-item">PERGUNTA 1 DE 3 • O INÍCIO DE TUDO</div>
         <h2 id="q1-title" class="step-title stagger-item" tabindex="-1">
-          Qual é a data do nosso aniversário de namoro?
+          Que dia começamos a namorar?
         </h2>
         <p class="step-hint stagger-item">
-          O dia em que o nosso capítulo mais bonito começou a ser escrito.
+          Digite a data especial no formato abaixo:
         </p>
 
         <form id="form-q1" class="question-form stagger-item" novalidate>
-          <label for="input-date" class="sr-only">Data do aniversário de namoro (Dia, Mês e Ano)</label>
+          <label for="input-date" class="sr-only">Data em que começamos a namorar (DD/MM/AAAA)</label>
           <div class="date-input-wrapper" id="date-input-wrapper">
             <svg class="date-input-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#calendar-heart" /></svg>
             <input
@@ -604,7 +604,7 @@
             <svg class="date-check-seal" id="date-check-seal" viewBox="0 0 24 24" aria-hidden="true"><use href="#check-seal" /></svg>
           </div>
           <button type="submit" class="btn-primary" id="btn-submit-q1">
-            <span>Tentar abrir o 1º cadeado</span>
+            <span>Verificar data</span>
           </button>
         </form>
 
@@ -616,40 +616,37 @@
         <div class="card-ornament" aria-hidden="true">
           <svg viewBox="0 0 160 28"><use href="#ornament-sprig" /></svg>
         </div>
-        <div class="step-badge stagger-item">PERGUNTA 2 DE 3 • FÉ, DEVOÇÃO E SINAL</div>
+        <div class="step-badge stagger-item">PERGUNTA 2 DE 3 • A INTERCESSÃO</div>
         <h2 id="q2-title" class="step-title stagger-item" tabindex="-1">
-          Para qual santo(a) rezamos pedindo uma confirmação para o nosso namoro?
+          A qual santo pedimos intercessão para namorar?
         </h2>
-        <p class="step-hint stagger-item">
-          Aquela intercessão do céu que guardamos com tanto carinho no coração… 🙏
-        </p>
 
         <div class="options-grid stagger-item" role="group" aria-labelledby="q2-title">
           <button type="button" class="option-btn" data-option="a">
             <span class="option-letter">A</span>
             <span class="option-label">
-              <span class="option-label-text">Santa Cecília</span>
+              <span class="option-label-text">Santo Agostinho <em class="option-joke">(tarde te amei… 😂)</em></span>
               <span class="option-strike" aria-hidden="true"></span>
             </span>
           </button>
           <button type="button" class="option-btn" data-option="b">
             <span class="option-letter">B</span>
             <span class="option-label">
-              <span class="option-label-text">Santo Antônio</span>
+              <span class="option-label-text">São Paulo <em class="option-joke">(vai tricoloooor! 🔴⚪⚫)</em></span>
               <span class="option-strike" aria-hidden="true"></span>
             </span>
           </button>
           <button type="button" class="option-btn" data-option="c">
             <span class="option-letter">C</span>
             <span class="option-label">
-              <span class="option-label-text">Santa Teresinha do Menino Jesus</span>
+              <span class="option-label-text">Santa Teresinha do Menino Jesus <em class="option-joke">(a das rosinhas 🌹)</em></span>
             </span>
             <svg class="option-rose-bud" viewBox="0 0 36 36" aria-hidden="true"><use href="#rose-bud" /></svg>
           </button>
           <button type="button" class="option-btn" data-option="d">
             <span class="option-letter">D</span>
             <span class="option-label">
-              <span class="option-label-text">São Domingos de Gusmão</span>
+              <span class="option-label-text">São Domingos de Gusmão <em class="option-joke">(o do Santo Rosário 📿)</em></span>
               <span class="option-strike" aria-hidden="true"></span>
             </span>
           </button>
@@ -663,38 +660,28 @@
         <div class="card-ornament" aria-hidden="true">
           <svg viewBox="0 0 160 28"><use href="#ornament-sprig" /></svg>
         </div>
-        <div class="step-badge stagger-item">PERGUNTA 3 DE 3 • CONFIRMAÇÃO DE IDENTIDADE</div>
+        <div class="step-badge stagger-item">PERGUNTA 3 DE 3 • IDENTIDADE SECRETA</div>
         <h2 id="q3-title" class="step-title stagger-item" tabindex="-1">
-          Última verificação de segurança: quem está tentando abrir esta caixa?
+          Quem é você para o Caique?
         </h2>
         <p class="step-hint stagger-item">
-          Digite o seu nome ou escolha uma das opções abaixo para liberar o último cadeado:
+          Se identifique com sinceridade para abrir o último cadeado:
         </p>
 
         <form id="form-q3" class="question-form stagger-item" novalidate>
-          <label for="input-identity" class="sr-only">Digite seu nome</label>
+          <label for="input-identity" class="sr-only">Se identifique</label>
           <input
             type="text"
             id="input-identity"
             class="text-input"
-            placeholder="Isabela…"
+            placeholder="Se identifique..."
             autocomplete="off"
+            required
           />
-          <button type="submit" class="btn-secondary" id="btn-submit-q3">
-            Confirmar nome
+          <button type="submit" class="btn-primary" id="btn-submit-q3">
+            <span>Responder</span>
           </button>
         </form>
-
-        <div class="divider-or stagger-item" aria-hidden="true"><span>ou escolha direto</span></div>
-
-        <div class="identity-quick-buttons stagger-item">
-          <button type="button" id="btn-id-love" class="btn-primary btn-choice-love">
-            <span>Sou o amor da vida do Caique 💕</span>
-          </button>
-          <button type="button" id="btn-id-intruder" class="btn-ghost-choice">
-            <span>Sou só uma invasora curiosa 👀</span>
-          </button>
-        </div>
 
         <div id="feedback-q3" class="feedback-box" role="status" aria-live="polite" hidden></div>
       </section>
@@ -833,10 +820,10 @@
               <div class="letter-content" id="letter-content-p1">
                 <p class="letter-greeting" id="letter-greeting-p1">Para o amor da minha vida,</p>
                 <p class="letter-paragraph" id="letter-p1-1">
-                  Desde o dia 27 de setembro, cada momento ao seu lado tem sido a resposta mais bonita que Deus poderia ter colocado no meu caminho. Você trouxe leveza, paz, risadas sinceras e um abrigo onde meu coração finalmente descansa.
+                  Aqui entrará uma mensagem só nossa. Um texto sobre tudo o que vivemos, sobre o quanto você é importante para mim e sobre como eu ainda quero viver muitos capítulos ao seu lado.
                 </p>
                 <p class="letter-paragraph" id="letter-p1-2">
-                  Olhar para a nossa caminhada, lembrar das nossas orações, das nossas conversas e de como tudo foi se encaixando com tanta delicadeza só me dá ainda mais certeza: é com você que eu quero dividir os sonhos, os planos, os dias comuns e todas as alegrias que ainda vão chegar.
+                  Essa caixinha guarda apenas uma pequena parte de tudo o que eu sinto por você.
                 </p>
                 <div class="letter-signature-wrap">
                   <p class="letter-signature" id="letter-signature-p1">
@@ -847,6 +834,8 @@
                   </svg>
                 </div>
               </div>
+
+              <p class="page-turn-hint">✨ Há mais uma página esperando por você...</p>
 
               <!-- Dobra interativa no canto inferior direito -->
               <button
@@ -862,7 +851,7 @@
 
               <div class="letter-pagination-actions">
                 <button type="button" id="btn-to-page-2" class="btn-primary">
-                  <span>Virar para a Página 2</span>
+                  <span>Virar a página</span>
                 </button>
               </div>
             </article>

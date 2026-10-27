@@ -24,8 +24,8 @@ const CONFIG = {
   cartaPagina1: {
     saudacao: "Para o amor da minha vida,",
     paragrafos: [
-      "Desde o dia 27 de setembro, cada momento ao seu lado tem sido a resposta mais bonita que Deus poderia ter colocado no meu caminho. Você trouxe leveza, paz, risadas sinceras e um abrigo onde meu coração finalmente descansa.",
-      "Olhar para a nossa caminhada, lembrar das nossas orações, das nossas conversas e de como tudo foi se encaixando com tanta delicadeza só me dá ainda mais certeza: é com você que eu quero dividir os sonhos, os planos, os dias comuns e todas as alegrias que ainda vão chegar."
+      "Aqui entrará uma mensagem só nossa. Um texto sobre tudo o que vivemos, sobre o quanto você é importante para mim e sobre como eu ainda quero viver muitos capítulos ao seu lado.",
+      "Essa caixinha guarda apenas uma pequena parte de tudo o que eu sinto por você."
     ],
     assinatura: "Com todo o meu amor, Caique. 💌"
   },
@@ -34,9 +34,9 @@ const CONFIG = {
   cartaPagina2: {
     saudacao: "Meu amor,",
     paragrafos: [
-      "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.",
-      "Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.",
-      "Curabitur pretium tincidunt lacus. Nulla gravida orci a odio. Nullam varius, turpis et commodo pharetra, est eros bibendum elit, nec luctus magna felis sollicitudin mauris."
+      "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Desde que você chegou, cada detalhe dos meus dias ganhou uma cor diferente, uma paz que eu nunca tinha experimentado antes e uma certeza bonita no coração.",
+      "Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris. Aqui entrará o texto especial que estou preparando para você, contando tudo o que passa no meu peito quando olho para o seu sorriso e penso no nosso futuro juntos.",
+      "Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Que a gente continue escrevendo essa história lado a lado, com todo o carinho do mundo."
     ],
     assinatura: "Para sempre seu, Caique. ❤️"
   },
@@ -47,9 +47,9 @@ const CONFIG = {
     imagemReserva: "assets/santa-teresinha-cartoon.svg",
     titulo: "A flor branca que você pediu a Santa Teresinha 🤍✨",
     texto1:
-      "Logo no começo da novena, quando rezamos pedindo um sinal do céu para o nosso namoro, você pediu uma flor branca a Santa Teresinha… e ela já tinha te atendido! 🙏🤍",
+      "Você me contou que rezou para ela pedindo uma flor branca — sem exigir que fosse rosa ou qualquer outra —, apenas como um sinal no seu coração de que o nosso relacionamento era da vontade de Deus. E logo no comecinho da novena, você já recebeu a sua florzinha! 🥹🤍",
     texto2:
-      "A florzinha branca você já recebeu lá no comecinho da novena, e agora toma essa chuva de florzinhas brancas digitais para lembrar sempre do carinho do céu com a gente! 🤍🌧️🌼"
+      "A florzinha branca real você já ganhou… então agora toma essa chuva de florzinhas brancas digitais, só para te lembrar todos os dias: o nosso amor é plano de Deus, e você é a resposta mais linda que Ele colocou na minha vida."
   },
 
   // Etapa 6: Elogios antes da Raspadinha do Cupom
@@ -1316,31 +1316,25 @@ function setupQuestion1() {
       renderFeedback(
         el.feedbackQ1,
         "success",
-        "<strong>Sim, meu amor!</strong> 27/09 — o dia em que começou a nossa história mais bonita. O primeiro cadeado já se abriu! ❤️✨",
-        "Ir para a 2ª pergunta",
+        `<p class="feedback-title">Isso mesmo! 🥹💘</p><p class="feedback-text">O dia em que a minha vida ficou muito mais bonita. Até o calendário deveria comemorar essa data.</p>`,
+        "Próxima pergunta",
         () => goToStep(el.stepQ2)
       );
     } else {
       state.q1Attempts += 1;
       triggerBoxErrorShake(el.inputDate);
 
-      let hintMsg =
-        "Quase lá, meu amor! Pensa com carinho no dia exato em que dissemos sim para a nossa caminhada juntos… 💭💕";
-      if (state.q1Attempts === 2) {
-        hintMsg =
-          "Dica especial do coração: foi num dia <strong>27 de setembro</strong> muito abençoado… Tenta de novo! 🥰";
-      } else if (state.q1Attempts >= 3) {
-        hintMsg =
-          "Amor, até o <strong>VAR do nosso tricolor</strong> já chamou no monitor pra ajudar! 😂⚽ Dica oficial da cabine: foi em <strong>27/09</strong>! Agora é só bater pro gol! ❤️🤍🖤";
-      }
-
-      renderFeedback(el.feedbackQ1, "error", hintMsg);
+      renderFeedback(
+        el.feedbackQ1,
+        "error",
+        `<p class="feedback-title">Eita! Será que é mesmo a namorada do Caique ou uma invasora??? 👀</p><p class="feedback-text">Se não for Isabela, pode ir saindo daqui. Se for… respira e tenta de novo! 😂</p>`
+      );
     }
   });
 }
 
 /* ============================================================================
-   ETAPA 2: PERGUNTA DE SANTA TERESINHA
+   ETAPA 2: PERGUNTA DE SANTA TERESINHA E DOS SANTOS
    ============================================================================ */
 function setupQuestion2() {
   el.optionBtnsQ2.forEach((btn) => {
@@ -1360,11 +1354,12 @@ function setupQuestion2() {
         renderFeedback(
           el.feedbackQ2,
           "success",
-          "<strong>Isso mesmo, meu amor!</strong> Foi para <strong>Santa Teresinha do Menino Jesus</strong> que rezamos pedindo um sinal do céu… e que confirmação linda ela nos deu! 🌹🤍✨",
+          `<p class="feedback-title">Santa Teresinha aprovou essa resposta! 🌹</p><p class="feedback-text">Uma rosa para você, outro cadeado aberto e mais uma prova de que essa caixa escolheu a pessoa certa.</p>`,
           "Ir para a última pergunta",
           () => {
             preloadUpcomingAssets();
             goToStep(el.stepQ3);
+            setTimeout(() => el.inputIdentity.focus(), 80);
           }
         );
       } else {
@@ -1372,9 +1367,9 @@ function setupQuestion2() {
         triggerBoxErrorShake(btn);
 
         const wrongFeedbacks = {
-          a: "Santa Cecília é muito querida, mas não foi para ela que pedimos a nossa confirmação especial… Tenta mais uma vez, meu amor! 🎶🤍",
-          b: "Santo Antônio tem fama de casamenteiro, né? 😂 Mas a nossa intercessora especial do céu foi outra santinha das rosas… 🌹💭",
-          d: "Amor, você ama demais o <strong>Santo Rosário</strong> mesmo, né?! 😂📿 São Domingos de Gusmão fica muito feliz no céu com tanta devoção sua, mas a confirmação do nosso namoro nós pedimos para a santinha da chuva de rosas! 🌹🤍"
+          a: `<p class="feedback-title">Hmm… a intercessão foi forte, mas essa memória está precisando de uma novena! 😂</p><p class="feedback-text">Dica: a resposta certa costuma vir acompanhada de rosas.</p>`,
+          b: `<p class="feedback-title">VAMOS, TRICOLOOOR! 🔴⚪⚫</p><p class="feedback-text">Mas infelizmente esse gol foi anulado pelo VAR. Tenta outra vez! 😂</p>`,
+          d: `<p class="feedback-title">São Domingos quase mandou você rezar um Rosário inteiro! 😂📿🐶</p><p class="feedback-text">O fundador dos Dominicanos nos deu o Santo Rosário e pregou com o coração em chamas, mas para o nosso namoro a intercessora foi outra! Dica: a resposta certa costuma vir acompanhada de rosas. 🌹</p>`
         };
 
         renderFeedback(
@@ -1388,26 +1383,14 @@ function setupQuestion2() {
 }
 
 /* ============================================================================
-   ETAPA 3: PERGUNTA DE IDENTIDADE ("ISABELA", "ISA" OU "AMOR") + PLACEHOLDER FANTASMA
+   ETAPA 3: PERGUNTA DE IDENTIDADE ("QUEM É VOCÊ PARA O CAIQUE?")
    ============================================================================ */
-let ghostPlaceholderInterval = null;
-
-function setupGhostPlaceholderQ3() {
-  if (!el.inputIdentity || state.reducedMotion) return;
-  const phrases = ["Isabela…", "Isa…", "Amor da vida do…"];
-  let phraseIdx = 0;
-
-  ghostPlaceholderInterval = setInterval(() => {
-    if (document.activeElement === el.inputIdentity || el.stepQ3.hidden) return;
-    phraseIdx = (phraseIdx + 1) % phrases.length;
-    el.inputIdentity.setAttribute("placeholder", phrases[phraseIdx]);
-  }, 3000);
-}
-
 function normalizeText(str) {
-  return str
+  return (str || "")
     .normalize("NFD")
     .replace(/[\u0300-\u036f]/g, "")
+    .replace(/[^\w\s]/g, " ")
+    .replace(/\s+/g, " ")
     .trim()
     .toLowerCase();
 }
@@ -1420,8 +1403,6 @@ function handleQuestion3Success(customMessage) {
 
   el.inputIdentity.disabled = true;
   el.btnSubmitQ3.hidden = true;
-  el.btnIdLove.disabled = true;
-  el.btnIdIntruder.disabled = true;
 
   renderFeedback(
     el.feedbackQ3,
@@ -1433,8 +1414,6 @@ function handleQuestion3Success(customMessage) {
 }
 
 function setupQuestion3() {
-  setupGhostPlaceholderQ3();
-
   el.formQ3.addEventListener("submit", (e) => {
     e.preventDefault();
     if (state.locksOpened[2]) return;
@@ -1444,61 +1423,70 @@ function setupQuestion3() {
 
     if (!clean) {
       triggerBoxErrorShake(el.inputIdentity);
-      renderFeedback(
-        el.feedbackQ3,
-        "error",
-        "Digite seu nome lindo ou escolha um dos botões abaixo para o cadeado reconhecer você! 🥰"
-      );
+      el.inputIdentity.focus();
       return;
     }
 
     const containsAmor = clean.includes("amor");
-    const startsWithIsa = clean.startsWith("isa") || clean.includes("isabela");
+    const startsWithIsa = /^isa(bela)?\b/.test(clean) || clean.includes("isabela");
 
     if (containsAmor) {
       handleQuestion3Success(
-        "<strong>Ownnn!</strong> Escrevendo <em>'amor'</em> a caixa reconhece na hora a dona do coração do Caique! Todos os cadeados foram destrancados! 🥰💖"
+        `<p class="feedback-title">Exatamente! Agora sim você falou o seu nome completo. 💘</p>`
       );
       return;
     }
 
     if (startsWithIsa) {
-      const isExactIsaOrIsabela = clean === "isa" || clean === "isabela";
-      if (!isExactIsaOrIsabela) {
-        handleQuestion3Success(
-          `Opa, peraí… <strong>"${rawValue.trim()}"</strong>?! 😂 Seria essa uma <em>Isa Ivo do multiverso</em> ou uma invasora disfarçada tentando abrir a caixa?! Como começou com <strong>Isa</strong>, o sistema liberou com carinho! 💖🔓`
-        );
-      } else {
-        handleQuestion3Success(
-          "<strong>Identidade confirmada com sucesso:</strong> Isabela, a dona do meu coração! Todos os cadeados foram destrancados! ❤️🔓"
-        );
-      }
+      handleQuestion3Success(
+        `<p class="feedback-title">QUASEEE! 😌</p><p class="feedback-text">Sim, <strong>Isa</strong> ou <strong>Isabela</strong> é a dona do coração do Caique, mas o correto é: <strong>AMOR DA VIDA DO CAIQUE.</strong> 💖<br/>Mas como você chegou muito perto, vou aceitar.</p>`
+      );
       return;
     }
 
     triggerBoxErrorShake(el.inputIdentity);
-    renderFeedback(
-      el.feedbackQ3,
-      "error",
-      "Hmm… O sensor romântico apitou aqui! 🕵️‍♂️💘 Digite <strong>'Isabela'</strong>, <strong>'Isa'</strong> ou escreva <strong>'Amor'</strong> (ou toque em <em>'Sou o amor da vida do Caique'</em>) para destrancar!"
-    );
-  });
+    el.feedbackQ3.hidden = false;
+    el.feedbackQ3.className = "feedback-box feedback-error";
+    el.feedbackQ3.innerHTML = `
+      <p class="feedback-title">Essa resposta levantou suspeitas… 👀</p>
+      <p class="feedback-text">
+        Você é o amor da vida do Caique ou a Isa Ivo do multiverso?
+      </p>
+      <div class="identity-quick-buttons" style="margin-top: 12px;">
+        <button type="button" class="btn-primary" id="btn-choice-amor">
+          <span>Sou o amor da vida do Caique 💘</span>
+        </button>
+        <button type="button" class="btn-ghost-choice" id="btn-choice-invasora">
+          <span>Sou só uma invasora curiosa 👀</span>
+        </button>
+      </div>
+    `;
 
-  el.btnIdLove.addEventListener("click", () => {
-    if (state.locksOpened[2]) return;
-    handleQuestion3Success(
-      "<strong>Sabia que era você, amor da minha vida!</strong> Todos os 3 cadeados foram abertos. Prepare o coração para abrir a nossa caixa! 💘🔓"
-    );
-  });
+    const btnAmor = document.getElementById("btn-choice-amor");
+    const btnInvasora = document.getElementById("btn-choice-invasora");
 
-  el.btnIdIntruder.addEventListener("click", () => {
-    if (state.locksOpened[2]) return;
-    triggerBoxErrorShake(el.btnIdIntruder);
-    renderFeedback(
-      el.feedbackQ3,
-      "error",
-      "Alerta de segurança máxima! 🚨 Essa caixa é exclusiva da <strong>Isabela</strong>, o amor da minha vida. Se você é ela, clique na opção de cima ou digite seu nome lindo! 😂💖"
-    );
+    if (btnAmor) {
+      btnAmor.addEventListener("click", () => {
+        handleQuestion3Success(
+          `<p class="feedback-title">Exatamente! Agora sim você falou o seu nome completo. 💘</p>`
+        );
+      });
+    }
+
+    if (btnInvasora) {
+      btnInvasora.addEventListener("click", () => {
+        triggerBoxErrorShake(btnInvasora);
+        el.feedbackQ3.className = "feedback-box feedback-error";
+        el.feedbackQ3.innerHTML = `
+          <p class="feedback-title">Sabia! A segurança dessa caixa é quase intransponível. 😂</p>
+          <p class="feedback-text">
+            Mas, como você parece promissora, vou dar mais uma chance. 😂
+          </p>
+        `;
+        el.inputIdentity.value = "";
+        el.inputIdentity.focus();
+      });
+    }
   });
 }
 
@@ -2648,8 +2636,8 @@ function resetExperience() {
   el.inputIdentity.disabled = false;
   el.inputIdentity.value = "";
   el.btnSubmitQ3.hidden = false;
-  el.btnIdLove.disabled = false;
-  el.btnIdIntruder.disabled = false;
+  if (el.btnIdLove) el.btnIdLove.disabled = false;
+  if (el.btnIdIntruder) el.btnIdIntruder.disabled = false;
   el.feedbackQ3.hidden = true;
   el.feedbackQ3.innerHTML = "";
 

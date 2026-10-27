@@ -181,8 +181,6 @@ const el = {
   formQ3: document.getElementById("form-q3"),
   inputIdentity: document.getElementById("input-identity"),
   btnSubmitQ3: document.getElementById("btn-submit-q3"),
-  btnIdLove: document.getElementById("btn-id-love"),
-  btnIdIntruder: document.getElementById("btn-id-intruder"),
   feedbackQ3: document.getElementById("feedback-q3"),
 
   polaroidCard: document.getElementById("polaroid-card"),
@@ -212,9 +210,7 @@ const el = {
   letterGreetingP2: document.getElementById("letter-greeting-p2"),
   letterSignatureP2: document.getElementById("letter-signature-p2"),
 
-  curlToPage2: document.getElementById("curl-to-page-2"),
   btnToPage2: document.getElementById("btn-to-page-2"),
-  curlToPage3: document.getElementById("curl-to-page-3"),
   btnToPage3: document.getElementById("btn-to-page-3"),
   btnBackPage1: document.getElementById("btn-back-page-1"),
   btnBackPage2: document.getElementById("btn-back-page-2"),
@@ -812,8 +808,14 @@ function initPersonalization() {
       if (el.finalDeclaration) el.finalDeclaration.textContent = fullDecl;
     }
 
-    if (el.finalPhoto && CONFIG.agradecimentoFinal.fotoFinalUrl) {
-      el.finalPhoto.src = CONFIG.agradecimentoFinal.fotoFinalUrl;
+    if (el.finalPhoto) {
+      el.finalPhoto.onerror = function handleFinalPhotoFallback() {
+        el.finalPhoto.onerror = null;
+        el.finalPhoto.src = CONFIG.fotoCasalReserva || "assets/foto-final.jpg";
+      };
+      if (CONFIG.agradecimentoFinal.fotoFinalUrl) {
+        el.finalPhoto.src = CONFIG.agradecimentoFinal.fotoFinalUrl;
+      }
     }
 
     if (el.btnWhatsapp && CONFIG.agradecimentoFinal.whatsappNumero) {
@@ -2363,11 +2365,7 @@ function setupLetterPagination() {
   };
 
   if (el.btnToPage2) el.btnToPage2.addEventListener("click", toPage2);
-  if (el.curlToPage2) el.curlToPage2.addEventListener("click", toPage2);
-
   if (el.btnToPage3) el.btnToPage3.addEventListener("click", toPage3);
-  if (el.curlToPage3) el.curlToPage3.addEventListener("click", toPage3);
-
   if (el.btnBackPage1) el.btnBackPage1.addEventListener("click", backToPage1);
   if (el.btnBackPage2) el.btnBackPage2.addEventListener("click", backToPage2);
 
@@ -2472,6 +2470,10 @@ function initScratchCanvas() {
   if (!canvas || !wrapper || state.scratchCompleted) return;
 
   const rect = wrapper.getBoundingClientRect();
+  if (rect.height < 50) {
+    requestAnimationFrame(initScratchCanvas);
+    return;
+  }
   const width = Math.max(260, Math.round(rect.width));
   const height = Math.max(250, Math.round(rect.height));
   const dpr = Math.min(window.devicePixelRatio || 1, 2);
@@ -2610,7 +2612,10 @@ function completeScratchReveal() {
 
   el.scratchCanvas.classList.add("scratched-complete");
   if (el.btnRevealScratch) el.btnRevealScratch.hidden = true;
-  if (el.btnAcceptDate) el.btnAcceptDate.disabled = false;
+  if (el.btnAcceptDate) {
+    el.btnAcceptDate.disabled = false;
+    el.btnAcceptDate.classList.add("pulse-ready");
+  }
 
   soundFX.playSuccess();
   triggerCelebrationShower(18);
@@ -2624,6 +2629,8 @@ function setupScratchCard() {
   let lastX = 0;
   let lastY = 0;
   let currentStrokeDistance = 0;
+  let lastDirectionX = 0;
+  let segmentDistanceX = 0;
   let moveThrottle = 0;
 
   function scratchSegment(x1, y1, x2, y2) {
@@ -2657,13 +2664,13 @@ function setupScratchCard() {
   function checkScratchPercentage() {
     if (state.scratchCompleted) return;
 
-    // Exige no mínimo 4 raspadas reais antes de qualquer revelação automática!
+    // Exige no mínimo 5 raspadas reais antes de qualquer revelação automática!
     const effectiveStrokes = Math.max(
       state.scratchStrokes,
-      Math.floor(state.scratchTotalDistance / 110)
+      Math.floor(state.scratchTotalDistance / 190)
     );
 
-    if (effectiveStrokes < 4) {
+    if (effectiveStrokes < 5) {
       return;
     }
 
@@ -2685,8 +2692,8 @@ function setupScratchCard() {
 
     const ratio = transparentPixels / Math.max(1, totalSampled);
 
-    // Revela se atingiu 50% de área raspada OU se ela já deu várias raspadas fortes (>= 8)
-    if (ratio >= 0.50 || effectiveStrokes >= 8) {
+    // Revela se raspou pelo menos 5 vezes E atingiu 52% de área raspada, OU se já deu 10 raspadas fortes
+    if (ratio >= 0.52 || effectiveStrokes >= 10) {
       completeScratchReveal();
     }
   }
@@ -2695,7 +2702,11 @@ function setupScratchCard() {
     if (state.scratchCompleted) return;
     isScratching = true;
     currentStrokeDistance = 0;
-    canvas.setPointerCapture(e.pointerId);
+    segmentDistanceX = 0;
+    lastDirectionX = 0;
+    try {
+      canvas.setPointerCapture(e.pointerId);
+    } catch (_) {}
 
     const rect = canvas.getBoundingClientRect();
     lastX = e.clientX - rect.left;
@@ -2723,25 +2734,46 @@ function setupScratchCard() {
     currentStrokeDistance += dist;
     state.scratchTotalDistance += dist;
 
+    // Detecta vai-e-vem (mudança de direção) para contar raspadas contínuas com o dedo no canvas
+    const dx = x - lastX;
+    const currentDirX = dx > 1.5 ? 1 : dx < -1.5 ? -1 : 0;
+    if (currentDirX !== 0) {
+      if (lastDirectionX !== 0 && currentDirX !== lastDirectionX && segmentDistanceX >= 35) {
+        state.scratchStrokes++;
+        segmentDistanceX = 0;
+      } else {
+        segmentDistanceX += Math.abs(dx);
+      }
+      lastDirectionX = currentDirX;
+    }
+
     scratchSegment(lastX, lastY, x, y);
     lastX = x;
     lastY = y;
 
     moveThrottle++;
-    if (moveThrottle % 8 === 0) {
+    if (moveThrottle % 10 === 0) {
       checkScratchPercentage();
     }
   });
 
-  function stopScratching() {
+  function stopScratching(e) {
     if (!isScratching) return;
     isScratching = false;
+
+    if (e && e.pointerId) {
+      try {
+        canvas.releasePointerCapture(e.pointerId);
+      } catch (_) {}
+    }
 
     // Se o movimento do traço foi de pelo menos 30px, conta como uma raspada legítima
     if (currentStrokeDistance >= 30) {
       state.scratchStrokes++;
     }
     currentStrokeDistance = 0;
+    segmentDistanceX = 0;
+    lastDirectionX = 0;
 
     checkScratchPercentage();
   }
@@ -2925,6 +2957,7 @@ function setupFinalCouponActions() {
     soundFX.playAcceptEncounter();
     navigator.vibrate?.([25, 40, 35]);
 
+    el.btnAcceptDate.classList.remove("pulse-ready");
     el.couponActions.hidden = true;
     el.couponStamp.hidden = false;
     if (el.acaiCouponCard) {
@@ -2948,9 +2981,11 @@ function setupFinalCouponActions() {
       startRelationshipCounter(true);
 
       setTimeout(() => {
-        el.finalPromiseCard.scrollIntoView({
+        const rect = el.finalPromiseCard.getBoundingClientRect();
+        const targetY = window.pageYOffset + rect.top - 20;
+        window.scrollTo({
+          top: Math.max(0, targetY),
           behavior: state.reducedMotion ? "auto" : "smooth",
-          block: "start",
         });
       }, 140);
     };
@@ -3098,8 +3133,6 @@ function resetExperience() {
   el.inputIdentity.disabled = false;
   el.inputIdentity.value = "";
   el.btnSubmitQ3.hidden = false;
-  if (el.btnIdLove) el.btnIdLove.disabled = false;
-  if (el.btnIdIntruder) el.btnIdIntruder.disabled = false;
   el.feedbackQ3.hidden = true;
   el.feedbackQ3.innerHTML = "";
 
@@ -3116,7 +3149,10 @@ function resetExperience() {
   el.scratchCanvas.classList.remove("scratched-complete");
   if (el.btnRevealScratch) el.btnRevealScratch.hidden = false;
   if (el.acaiCouponCard) el.acaiCouponCard.classList.remove("coupon-sealed");
-  el.btnAcceptDate.disabled = true;
+  if (el.btnAcceptDate) {
+    el.btnAcceptDate.disabled = true;
+    el.btnAcceptDate.classList.remove("pulse-ready");
+  }
   el.couponActions.hidden = false;
   el.couponStamp.hidden = true;
   el.finalPromiseCard.hidden = true;
@@ -3126,6 +3162,8 @@ function resetExperience() {
     el.finaleOverlay.hidden = true;
   }
   if (el.celebrationLayer) el.celebrationLayer.innerHTML = "";
+
+  initScratchCanvas();
 
   setupIntroSplitName();
   goToStep(el.stepIntro);

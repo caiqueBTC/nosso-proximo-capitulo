@@ -12,11 +12,11 @@ const CONFIG = {
   fotoCasalReserva: "assets/foto-casal-placeholder.svg",
   legendaPolaroid: "O meu lugar favorito no mundo é ao seu lado ❤️",
 
-  // Configuração da música de fundo (usa assets/musica.wav nativo no HTML5 <audio> para 100% de suporte mobile)
+  // Configuração da música de fundo (Balada Acústica de Piano Feltro em Fá Maior no HTML5 <audio>)
   musica: {
-    arquivo: "assets/musica.wav",
-    volume: 0.72,
-    fadeInMs: 800,
+    arquivo: "assets/musica.wav?v=2",
+    volume: 0.64,
+    fadeInMs: 900,
   },
 
   // Página 1 da Carta (Texto original preservado)
@@ -276,7 +276,7 @@ const el = {
 };
 
 /* ============================================================================
-   5. MOTOR DE ÁUDIO ROMÂNTICO ("soundFX" com Reverb, Caixinha de Música e MP3)
+   5. MOTOR DE ÁUDIO ROMÂNTICO (Piano Feltro Acústico em Fá Maior + Adaptação por Etapa)
    ============================================================================ */
 class RomanticAudioEngine {
   constructor() {
@@ -288,6 +288,9 @@ class RomanticAudioEngine {
 
     this.isPlayingMusic = false;
     this.usingNativeAudio = false;
+    this.currentMoodStage = "intro";
+    this.targetMusicVolume = (CONFIG.musica && CONFIG.musica.volume) || 0.64;
+    this.volumeFadeTimer = null;
 
     this.arpeggioTimer = null;
     this.stepIndex = 0;
@@ -298,7 +301,7 @@ class RomanticAudioEngine {
     this.prepareMobileSfxPool();
   }
 
-  // Gera mini-WAVs em memória (< 3ms) para que os efeitos sonoros toquem via HTML5 <audio> nativo no celular
+  // Gera mini-WAVs em memória (< 4ms) com timbre de Piano Feltro quente para HTML5 <audio> nativo no celular
   encodeMiniWav(samples, sampleRate = 11025) {
     const numSamples = samples.length;
     const buffer = new ArrayBuffer(44 + numSamples * 2);
@@ -329,92 +332,155 @@ class RomanticAudioEngine {
   prepareMobileSfxPool() {
     try {
       const sr = 11025;
-      const synthArpeggio = (notes, stepSec, noteDur, gain) => {
-        const totalSec = notes.length * stepSec + noteDur;
+      // Sintetiza acordes arpejados de Piano Feltro em Fá Maior (mesma tonalidade da trilha principal)
+      const synthFeltPianoChord = (notes, stepSec, noteDur, gain) => {
+        const totalSec = notes.length * stepSec + noteDur + 0.25;
         const buf = new Float32Array(Math.floor(sr * totalSec));
         notes.forEach((f, idx) => {
           const start = Math.floor(idx * stepSec * sr);
           const len = Math.floor(noteDur * sr);
           const w1 = (2 * Math.PI * f) / sr;
-          const w2 = (2 * Math.PI * f * 2) / sr;
+          const w1b = (2 * Math.PI * f * 1.0005) / sr;
+          const w2 = (2 * Math.PI * f * 2.0003) / sr;
+          const w3 = (2 * Math.PI * f * 3.001) / sr;
           for (let i = 0; i < len && start + i < buf.length; i++) {
             const t = i / sr;
-            const env = t < 0.01 ? t / 0.01 : Math.exp(-t * 4.2);
-            buf[start + i] += (Math.sin(w1 * i) * 0.75 + Math.sin(w2 * i) * 0.25) * gain * env;
+            const attack = t < 0.016 ? 0.5 * (1 - Math.cos((Math.PI * t) / 0.016)) : 1.0;
+            const body = 0.65 * Math.exp(-t * 3.6) + 0.35 * Math.exp(-t * 1.15);
+            const env = attack * body;
+            const tone =
+              (Math.sin(w1 * i) + Math.sin(w1b * i)) * 0.42 +
+              Math.sin(w2 * i) * 0.22 * Math.exp(-t * 2.8) +
+              Math.sin(w3 * i) * 0.07 * Math.exp(-t * 6.5);
+            buf[start + i] += tone * gain * env;
           }
         });
+        // Suave reverberação de sala íntima + filtro passa-baixa de tampo harmônico
+        const d1 = Math.floor(0.11 * sr);
+        const d2 = Math.floor(0.23 * sr);
+        let lp = 0;
+        for (let i = 0; i < buf.length; i++) {
+          const rev =
+            buf[i] +
+            (i >= d1 ? buf[i - d1] * 0.24 : 0) +
+            (i >= d2 ? buf[i - d2] * 0.14 : 0);
+          lp += 0.45 * (rev - lp);
+          buf[i] = Math.tanh(lp * 0.92);
+        }
         return this.encodeMiniWav(buf, sr);
       };
 
-      this.sfxUrls.chime = synthArpeggio([523.25, 659.25, 783.99, 987.77, 1046.5, 1318.51], 0.065, 0.85, 0.42);
-      this.sfxUrls.success = synthArpeggio([1046.5, 1318.51, 1567.98], 0.09, 0.55, 0.45);
-      this.sfxUrls.boxUnlock = synthArpeggio(
-        [523.25, 587.33, 659.25, 783.99, 880.0, 1046.5, 1174.66, 1318.51, 1567.98, 1760.0],
-        0.075,
-        0.95,
+      // Acordes em Fá Maior (Fmaj9, Bbmaj9, Dm9) para harmonizar perfeitamente com assets/musica.wav
+      this.sfxUrls.chime = synthFeltPianoChord(
+        [174.61, 261.63, 349.23, 440.0, 523.25, 587.33, 659.25, 783.99],
+        0.095,
+        1.45,
+        0.44
+      );
+      this.sfxUrls.success = synthFeltPianoChord(
+        [349.23, 440.0, 523.25, 659.25, 783.99],
+        0.085,
+        1.1,
+        0.44
+      );
+      this.sfxUrls.boxUnlock = synthFeltPianoChord(
+        [174.61, 220.0, 261.63, 349.23, 440.0, 523.25, 587.33, 659.25, 698.46, 880.0, 1046.5],
+        0.105,
+        1.65,
         0.4
       );
-      this.sfxUrls.accept = synthArpeggio([523.25, 659.25, 783.99, 987.77, 1046.5, 1318.51, 1567.98], 0.07, 0.9, 0.44);
+      this.sfxUrls.accept = synthFeltPianoChord(
+        [174.61, 261.63, 349.23, 440.0, 523.25, 659.25, 783.99, 1046.5],
+        0.09,
+        1.55,
+        0.44
+      );
+      this.sfxUrls.pageTurn = synthFeltPianoChord(
+        [293.66, 440.0, 523.25, 659.25],
+        0.08,
+        0.95,
+        0.26
+      );
 
-      // Erro ("toc" suave)
-      const errBuf = new Float32Array(Math.floor(sr * 0.22));
+      // Erro ("toc" suave de madeira de piano)
+      const errBuf = new Float32Array(Math.floor(sr * 0.24));
       for (let i = 0; i < errBuf.length; i++) {
         const t = i / sr;
-        const f = 175 * Math.exp(-t * 4.5);
-        const env = t < 0.01 ? t / 0.01 : Math.exp(-t * 14);
-        errBuf[i] = Math.sin(2 * Math.PI * f * t) * 0.5 * env;
+        const f = 146.83 * Math.exp(-t * 3.8);
+        const env = t < 0.012 ? t / 0.012 : Math.exp(-t * 13);
+        errBuf[i] = Math.sin(2 * Math.PI * f * t) * 0.42 * env;
       }
       this.sfxUrls.error = this.encodeMiniWav(errBuf, sr);
 
       this.sfxPlayer = new Audio();
       this.sfxPlayer.preload = "auto";
 
-      // Gera também um loop WAV instantâneo em RAM (~12ms) caso assets/musica.wav ainda esteja baixando no 4G
-      const musicSteps = 32;
-      const stepSec = 0.428;
-      const totalSamples = Math.floor(sr * musicSteps * stepSec);
+      // Loop WAV de Piano Feltro calmo em RAM (~18s em Fá Maior) caso assets/musica.wav ainda esteja baixando no 4G
+      const barSec = 3.0;
+      const bars = 4;
+      const totalSamples = Math.floor(sr * barSec * bars);
       const mBuf = new Float32Array(totalSamples);
-      const chords = [
-        { pad: [130.81, 196.0, 246.94], notes: [523.25, 659.25, 783.99, 1046.5, 987.77, 783.99, 659.25, 783.99] },
-        { pad: [110.0, 164.81, 220.0], notes: [440.0, 523.25, 659.25, 880.0, 783.99, 659.25, 523.25, 659.25] },
-        { pad: [174.61, 220.0, 261.63], notes: [349.23, 440.0, 523.25, 698.46, 659.25, 523.25, 440.0, 523.25] },
-        { pad: [196.0, 246.94, 293.66], notes: [392.0, 493.88, 587.33, 783.99, 659.25, 587.33, 493.88, 587.33] },
+      const feltEvents = [
+        // Compasso 1: Fmaj9
+        { t: 0.0, f: 87.31, d: 3.1, g: 0.22 },
+        { t: 0.38, f: 174.61, d: 2.7, g: 0.18 },
+        { t: 0.75, f: 220.0, d: 2.4, g: 0.17 },
+        { t: 1.12, f: 261.63, d: 2.2, g: 0.17 },
+        { t: 1.5, f: 329.63, d: 2.1, g: 0.21 },
+        { t: 2.25, f: 392.0, d: 1.7, g: 0.2 },
+        // Compasso 2: Dm9
+        { t: 3.0, f: 73.42, d: 3.1, g: 0.22 },
+        { t: 3.38, f: 146.83, d: 2.7, g: 0.18 },
+        { t: 3.75, f: 220.0, d: 2.4, g: 0.17 },
+        { t: 4.12, f: 261.63, d: 2.2, g: 0.18 },
+        { t: 4.5, f: 329.63, d: 2.1, g: 0.21 },
+        { t: 5.25, f: 349.23, d: 1.7, g: 0.2 },
+        // Compasso 3: Bbmaj9
+        { t: 6.0, f: 116.54, d: 3.1, g: 0.21 },
+        { t: 6.38, f: 174.61, d: 2.7, g: 0.18 },
+        { t: 6.75, f: 220.0, d: 2.4, g: 0.18 },
+        { t: 7.12, f: 293.66, d: 2.2, g: 0.2 },
+        { t: 7.5, f: 392.0, d: 2.1, g: 0.21 },
+        { t: 8.25, f: 349.23, d: 1.7, g: 0.19 },
+        // Compasso 4: C9sus4 -> C7
+        { t: 9.0, f: 130.81, d: 3.1, g: 0.21 },
+        { t: 9.38, f: 196.0, d: 2.7, g: 0.18 },
+        { t: 9.75, f: 233.08, d: 2.4, g: 0.17 },
+        { t: 10.12, f: 293.66, d: 1.6, g: 0.19 },
+        { t: 10.5, f: 349.23, d: 1.5, g: 0.2 },
+        { t: 11.25, f: 329.63, d: 1.8, g: 0.19 },
       ];
-      for (let s = 0; s < musicSteps; s++) {
-        const ch = chords[Math.floor(s / 8) % 4];
-        const freq = ch.notes[s % 8];
-        const start = Math.floor(s * stepSec * sr);
-        const nLen = Math.floor(1.5 * sr);
-        const w1 = (2 * Math.PI * freq) / sr;
-        const w2 = (2 * Math.PI * freq * 2) / sr;
+      for (const ev of feltEvents) {
+        const start = Math.floor(ev.t * sr);
+        const nLen = Math.floor(ev.d * sr);
+        const w1 = (2 * Math.PI * ev.f) / sr;
+        const w1b = (2 * Math.PI * ev.f * 1.0005) / sr;
+        const w2 = (2 * Math.PI * ev.f * 2.0003) / sr;
         for (let i = 0; i < nLen; i++) {
           const idx = (start + i) % totalSamples;
           const t = i / sr;
-          const env = t < 0.012 ? t / 0.012 : Math.exp(-t * 2.8);
-          mBuf[idx] += (Math.sin(w1 * i) * 0.32 + Math.sin(w2 * i) * 0.12) * env;
-        }
-        if (s % 8 === 0) {
-          const pLen = Math.floor(stepSec * 8 * sr);
-          for (const pf of ch.pad) {
-            const wp = (2 * Math.PI * pf) / sr;
-            for (let i = 0; i < pLen; i++) {
-              const idx = (start + i) % totalSamples;
-              const t = i / sr;
-              const env = t < 0.5 ? t / 0.5 : Math.exp(-(t - 0.5) * 0.7);
-              mBuf[idx] += Math.sin(wp * i) * 0.075 * env;
-            }
-          }
+          const att = t < 0.018 ? 0.5 * (1 - Math.cos((Math.PI * t) / 0.018)) : 1.0;
+          const env = att * (0.62 * Math.exp(-t * 2.4) + 0.38 * Math.exp(-t * 0.85));
+          const s = (Math.sin(w1 * i) + Math.sin(w1b * i)) * 0.44 + Math.sin(w2 * i) * 0.18 * Math.exp(-t * 2.2);
+          mBuf[idx] += s * ev.g * env;
         }
       }
-      const d1 = Math.floor(0.214 * sr);
+      const d1 = Math.floor(0.19 * sr);
+      const d2 = Math.floor(0.37 * sr);
+      let lp = 0;
       for (let i = 0; i < totalSamples; i++) {
-        mBuf[i] = Math.tanh(mBuf[i] * 0.85 + mBuf[(i - d1 + totalSamples) % totalSamples] * 0.25);
+        const rev =
+          mBuf[i] +
+          mBuf[(i - d1 + totalSamples) % totalSamples] * 0.24 +
+          mBuf[(i - d2 + totalSamples) % totalSamples] * 0.14;
+        lp += 0.38 * (rev - lp);
+        mBuf[i] = Math.tanh(lp * 0.88);
       }
       this.instantMusicWavUrl = this.encodeMiniWav(mBuf, sr);
     } catch (_) {}
   }
 
-  playHtml5Sfx(key, volume = 0.85) {
+  playHtml5Sfx(key, volume = 0.78) {
     if (!state.audioEnabled || !this.sfxUrls[key]) return;
     try {
       const a = this.sfxPlayer || new Audio();
@@ -438,23 +504,23 @@ class RomanticAudioEngine {
       if (!AudioCtx) return null;
       this.ctx = new AudioCtx();
 
-      // Master Gain direto (sem ConvolverNode pesado para não travar CPU mobile nem bloquear áudio)
+      // Master Gain direto com filtro passa-baixa aveludado (2600 Hz) para timbre de piano íntimo
       this.masterGain = this.ctx.createGain();
       this.masterGain.gain.setValueAtTime(1.0, this.ctx.currentTime);
       this.masterGain.connect(this.ctx.destination);
 
       this.filterNode = this.ctx.createBiquadFilter();
       this.filterNode.type = "lowpass";
-      this.filterNode.frequency.setValueAtTime(4200, this.ctx.currentTime);
+      this.filterNode.frequency.setValueAtTime(2600, this.ctx.currentTime);
       this.filterNode.connect(this.masterGain);
 
       this.musicGain = this.ctx.createGain();
-      this.musicGain.gain.value = 0.55;
-      this.musicGain.gain.setValueAtTime(0.55, this.ctx.currentTime);
+      this.musicGain.gain.value = 0.5;
+      this.musicGain.gain.setValueAtTime(0.5, this.ctx.currentTime);
       this.musicGain.connect(this.filterNode);
 
       this.sfxGain = this.ctx.createGain();
-      this.sfxGain.gain.setValueAtTime(1.0, this.ctx.currentTime);
+      this.sfxGain.gain.setValueAtTime(0.9, this.ctx.currentTime);
       this.sfxGain.connect(this.filterNode);
     }
 
@@ -476,23 +542,102 @@ class RomanticAudioEngine {
     } catch (_) {}
   }
 
+  // Transição suave de volume do <audio> para acompanhar a emoção de cada etapa do site
+  fadeAudioVolumeTo(targetVol, durationMs = 1100) {
+    this.targetMusicVolume = Math.max(0.1, Math.min(0.95, targetVol));
+    if (this.volumeFadeTimer) {
+      clearInterval(this.volumeFadeTimer);
+      this.volumeFadeTimer = null;
+    }
+    if (!el.bgMusicAudio || el.bgMusicAudio.paused) {
+      if (el.bgMusicAudio) el.bgMusicAudio.volume = this.targetMusicVolume;
+      return;
+    }
+    const startVol = el.bgMusicAudio.volume;
+    const diff = this.targetMusicVolume - startVol;
+    if (Math.abs(diff) < 0.01) {
+      el.bgMusicAudio.volume = this.targetMusicVolume;
+      return;
+    }
+    const steps = 16;
+    const stepTime = Math.max(25, Math.floor(durationMs / steps));
+    let currentStep = 0;
+    this.volumeFadeTimer = setInterval(() => {
+      currentStep++;
+      if (!el.bgMusicAudio || currentStep >= steps) {
+        if (el.bgMusicAudio) el.bgMusicAudio.volume = this.targetMusicVolume;
+        clearInterval(this.volumeFadeTimer);
+        this.volumeFadeTimer = null;
+        return;
+      }
+      const p = currentStep / steps;
+      const eased = 0.5 - 0.5 * Math.cos(Math.PI * p);
+      el.bgMusicAudio.volume = Math.max(0.05, Math.min(1, startVol + diff * eased));
+    }, stepTime);
+  }
+
+  // Adapta a dinâmica da trilha de piano e toca um acorde suave de transição conforme o andar do site
+  setStageMood(stage) {
+    if (!stage || this.currentMoodStage === stage) return;
+    this.currentMoodStage = stage;
+    if (!state.audioEnabled) return;
+
+    const moodProfiles = {
+      intro: { vol: 0.62, cutoff: 2500, chord: [174.61, 261.63, 349.23, 440.0, 523.25] }, // Fmaj7 acolhedor
+      q1: { vol: 0.56, cutoff: 2350, chord: [196.0, 293.66, 349.23, 440.0] },             // Gm7 curioso e íntimo
+      q2: { vol: 0.58, cutoff: 2450, chord: [146.83, 220.0, 293.66, 349.23, 440.0] },     // Dm7 doce
+      q3: { vol: 0.6, cutoff: 2600, chord: [233.08, 293.66, 349.23, 440.0, 523.25] },     // Bbmaj9 expectativa
+      unlocked: { vol: 0.68, cutoff: 3100, chord: null },                                  // Abertura da caixa (já tem playBoxUnlock)
+      "letter-1": { vol: 0.48, cutoff: 2100, chord: [174.61, 220.0, 261.63, 329.63] },    // Piano bem baixinho e aveludado para leitura
+      "letter-2": { vol: 0.46, cutoff: 2000, chord: [146.83, 220.0, 261.63, 329.63, 392.0] }, // Dm9 profundo e contemplativo ("O que é o amor?")
+      "letter-3": { vol: 0.6, cutoff: 2850, chord: [233.08, 349.23, 440.0, 523.25, 659.25] }, // Bbmaj9 luminoso e celestial (Santa Teresinha)
+      scratch: { vol: 0.58, cutoff: 2650, chord: [196.0, 293.66, 349.23, 523.25] },       // Gm11 leve e divertido
+      finale: { vol: 0.74, cutoff: 3400, chord: null },                                    // Clímax romântico após aceitar o encontro
+    };
+
+    const profile = moodProfiles[stage] || moodProfiles.intro;
+    this.fadeAudioVolumeTo(profile.vol, 1100);
+
+    if (this.ctx && this.filterNode) {
+      try {
+        const now = this.ctx.currentTime;
+        this.filterNode.frequency.cancelScheduledValues(now);
+        this.filterNode.frequency.setValueAtTime(this.filterNode.frequency.value, now);
+        this.filterNode.frequency.exponentialRampToValueAtTime(profile.cutoff, now + 0.9);
+      } catch (_) {}
+    }
+
+    // Toca um acorde de piano feltro sutil que faz a ponte harmônica entre as páginas/etapas
+    if (profile.chord && this.ctx && this.ctx.state === "running") {
+      const now = this.ctx.currentTime;
+      profile.chord.forEach((freq, idx) => {
+        this.playFeltPianoNote(freq, now + idx * 0.085, 1.85, 0.042);
+      });
+    }
+  }
+
   startAmbientMelody() {
     if (!state.audioEnabled || !state.pageVisible) return;
     this.initContext();
 
-    // 1. Reprodução prioritária via elemento <audio> HTML5 nativo (assets/musica.wav)
+    // 1. Reprodução prioritária via elemento <audio> HTML5 nativo (assets/musica.wav?v=2)
     // Não usa createMediaElementSource para garantir que o som saia no canal de mídia nativo do celular!
     if (el.bgMusicAudio) {
       try {
-        // Se o arquivo de rede ainda não terminou de baixar no 4G, usa o WAV em RAM para tocar no milissegundo zero
-        if (el.bgMusicAudio.readyState < 2 && this.instantMusicWavUrl) {
+        const mainTrackUrl = (CONFIG.musica && CONFIG.musica.arquivo) || "assets/musica.wav?v=2";
+        const currentSrc = el.bgMusicAudio.getAttribute("src") || "";
+
+        // Se o arquivo de rede ainda não terminou de baixar no 4G, toca o Piano Feltro em RAM no milissegundo zero
+        // e já faz o upgrade transparente para a balada completa assim que ela carregar em background
+        if (el.bgMusicAudio.readyState < 2 && this.instantMusicWavUrl && currentSrc !== this.instantMusicWavUrl) {
           el.bgMusicAudio.src = this.instantMusicWavUrl;
-        } else if (!el.bgMusicAudio.getAttribute("src")) {
-          el.bgMusicAudio.src =
-            this.instantMusicWavUrl || (CONFIG.musica && CONFIG.musica.arquivo) || "assets/musica.wav";
+          this.upgradeToFullPianoTrackWhenReady(mainTrackUrl);
+        } else if (!currentSrc) {
+          el.bgMusicAudio.src = mainTrackUrl;
         }
+
         el.bgMusicAudio.muted = false;
-        el.bgMusicAudio.volume = (CONFIG.musica && CONFIG.musica.volume) || 0.72;
+        el.bgMusicAudio.volume = this.targetMusicVolume || 0.64;
 
         const playPromise = el.bgMusicAudio.play();
         this.isPlayingMusic = true;
@@ -510,6 +655,7 @@ class RomanticAudioEngine {
             .catch(() => {
               if (this.instantMusicWavUrl && el.bgMusicAudio.src !== this.instantMusicWavUrl) {
                 el.bgMusicAudio.src = this.instantMusicWavUrl;
+                this.upgradeToFullPianoTrackWhenReady(mainTrackUrl);
                 el.bgMusicAudio.play().catch(() => {
                   this.usingNativeAudio = false;
                   this.startMusicBoxGenerator();
@@ -527,23 +673,43 @@ class RomanticAudioEngine {
       }
     }
 
-    // 2. Fallback sintetizado leve
+    // 2. Fallback sintetizado de Piano Feltro
     this.isPlayingMusic = true;
     this.startMusicBoxGenerator();
+  }
+
+  upgradeToFullPianoTrackWhenReady(mainTrackUrl) {
+    if (this._upgradingTrack) return;
+    this._upgradingTrack = true;
+    try {
+      const loader = new Audio();
+      loader.preload = "auto";
+      loader.src = mainTrackUrl;
+      const onReady = () => {
+        loader.removeEventListener("canplaythrough", onReady);
+        if (!el.bgMusicAudio || !state.audioEnabled || !this.isPlayingMusic) return;
+        const prevVol = el.bgMusicAudio.volume;
+        el.bgMusicAudio.src = mainTrackUrl;
+        el.bgMusicAudio.volume = prevVol;
+        el.bgMusicAudio.play().catch(() => {});
+      };
+      loader.addEventListener("canplaythrough", onReady);
+      loader.load();
+    } catch (_) {}
   }
 
   startMusicBoxGenerator() {
     if (this.arpeggioTimer) clearInterval(this.arpeggioTimer);
 
-    // Progressão romântica C -> Am -> F -> G (cada acorde tem 8 notas de arpejo + nota de baixo/pad)
+    // Progressão lenta de Piano Feltro em Fá Maior (Fmaj9 -> Dm9 -> Bbmaj9 -> C9sus4)
     const chords = [
-      { pad: [130.81, 196.0, 246.94], notes: [523.25, 659.25, 783.99, 1046.5, 783.99, 659.25, 783.99, 659.25] }, // Cmaj7
-      { pad: [110.0, 164.81, 220.0], notes: [440.0, 523.25, 659.25, 880.0, 659.25, 523.25, 659.25, 523.25] },   // Am7
-      { pad: [174.61, 220.0, 261.63], notes: [349.23, 440.0, 523.25, 698.46, 523.25, 440.0, 523.25, 440.0] },   // Fmaj7
-      { pad: [196.0, 246.94, 293.66], notes: [392.0, 493.88, 587.33, 783.99, 587.33, 493.88, 587.33, 493.88] },  // G6
+      { pad: [87.31, 174.61, 220.0], notes: [261.63, 329.63, 392.0, 523.25, 440.0, 392.0, 329.63, 261.63] },
+      { pad: [73.42, 146.83, 220.0], notes: [261.63, 329.63, 392.0, 440.0, 392.0, 349.23, 329.63, 261.63] },
+      { pad: [116.54, 174.61, 220.0], notes: [293.66, 349.23, 440.0, 523.25, 440.0, 392.0, 349.23, 293.66] },
+      { pad: [130.81, 196.0, 233.08], notes: [293.66, 349.23, 392.0, 440.0, 392.0, 349.23, 329.63, 293.66] },
     ];
 
-    const stepMs = 428; // ~70 BPM (colcheias suaves)
+    const stepMs = 560; // ~53 BPM (andamento lento, calmo e respirado de balada de piano)
 
     const playTick = () => {
       if (!state.audioEnabled || !this.isPlayingMusic || !state.pageVisible) return;
@@ -557,14 +723,12 @@ class RomanticAudioEngine {
       const noteIdx = this.stepIndex % 8;
       const chord = chords[chordIdx];
 
-      // No início de cada compasso, toca o pad quente sustentado
       if (noteIdx === 0) {
         this.playWarmPadChord(chord.pad, (stepMs * 8) / 1000);
       }
 
-      // Nota da caixinha de música (seno + harmônicos de celesta, decay de 1.55s)
       const freq = chord.notes[noteIdx];
-      this.playMusicBoxNote(freq, 1.55);
+      this.playMusicBoxNote(freq, 2.2);
 
       this.stepIndex = (this.stepIndex + 1) % (chords.length * 8);
     };
@@ -573,60 +737,50 @@ class RomanticAudioEngine {
     this.arpeggioTimer = setInterval(playTick, stepMs);
   }
 
-  playMusicBoxNote(freq, duration = 1.55) {
+  playMusicBoxNote(freq, duration = 2.2) {
     if (!this.ctx || !this.musicGain) return;
     const now = this.ctx.currentTime;
 
     const oscSine = this.ctx.createOscillator();
-    const oscTri = this.ctx.createOscillator();
-    const oscBell = this.ctx.createOscillator();
+    const oscWarm = this.ctx.createOscillator();
     const noteGain = this.ctx.createGain();
-    const triGain = this.ctx.createGain();
-    const bellGain = this.ctx.createGain();
+    const warmGain = this.ctx.createGain();
 
     oscSine.type = "sine";
     oscSine.frequency.setValueAtTime(freq, now);
 
-    oscTri.type = "triangle";
-    oscTri.frequency.setValueAtTime(freq * 2, now);
-    triGain.gain.setValueAtTime(0.2, now);
-
-    oscBell.type = "sine";
-    oscBell.frequency.setValueAtTime(freq * 3, now);
-    bellGain.gain.setValueAtTime(0.085, now);
-    bellGain.gain.exponentialRampToValueAtTime(0.0001, now + 0.35);
+    oscWarm.type = "triangle";
+    oscWarm.frequency.setValueAtTime(freq * 2.0003, now);
+    warmGain.gain.setValueAtTime(0.12, now);
+    warmGain.gain.exponentialRampToValueAtTime(0.0001, now + duration * 0.65);
 
     noteGain.gain.setValueAtTime(0.0001, now);
-    noteGain.gain.linearRampToValueAtTime(0.28, now + 0.015);
+    noteGain.gain.linearRampToValueAtTime(0.22, now + 0.022);
     noteGain.gain.exponentialRampToValueAtTime(0.0001, now + duration);
 
     oscSine.connect(noteGain);
-    oscTri.connect(triGain);
-    triGain.connect(noteGain);
-    oscBell.connect(bellGain);
-    bellGain.connect(noteGain);
+    oscWarm.connect(warmGain);
+    warmGain.connect(noteGain);
     noteGain.connect(this.musicGain);
 
     oscSine.start(now);
-    oscTri.start(now);
-    oscBell.start(now);
-    oscSine.stop(now + duration + 0.04);
-    oscTri.stop(now + duration + 0.04);
-    oscBell.stop(now + 0.4);
+    oscWarm.start(now);
+    oscSine.stop(now + duration + 0.05);
+    oscWarm.stop(now + duration + 0.05);
   }
 
-  playWarmPadChord(freqs, duration = 3.4) {
+  playWarmPadChord(freqs, duration = 4.4) {
     if (!this.ctx || !this.musicGain) return;
     const now = this.ctx.currentTime;
 
     freqs.forEach((f) => {
       const osc = this.ctx.createOscillator();
       const gain = this.ctx.createGain();
-      osc.type = "triangle";
+      osc.type = "sine";
       osc.frequency.setValueAtTime(f, now);
 
       gain.gain.setValueAtTime(0.0001, now);
-      gain.gain.linearRampToValueAtTime(0.095, now + 0.55);
+      gain.gain.linearRampToValueAtTime(0.085, now + 0.65);
       gain.gain.exponentialRampToValueAtTime(0.0001, now + duration);
 
       osc.connect(gain);
@@ -656,16 +810,16 @@ class RomanticAudioEngine {
     }
   }
 
-  // Abaixa a música para 40% durante momentos especiais (abertura da caixa, aceitar encontro)
-  duckMusic(durationMs = 2000) {
+  // Abaixa suavemente a música durante momentos especiais e depois retorna ao volume da etapa atual
+  duckMusic(durationMs = 2200) {
     if (!this.isPlayingMusic) return;
-    const baseVol = (CONFIG.musica && CONFIG.musica.volume) || 0.72;
+    const baseVol = this.targetMusicVolume || (CONFIG.musica && CONFIG.musica.volume) || 0.64;
 
     if (el.bgMusicAudio && !el.bgMusicAudio.paused) {
-      el.bgMusicAudio.volume = baseVol * 0.35;
+      el.bgMusicAudio.volume = Math.max(0.12, baseVol * 0.42);
       setTimeout(() => {
         if (this.isPlayingMusic && state.audioEnabled) {
-          el.bgMusicAudio.volume = baseVol;
+          this.fadeAudioVolumeTo(this.targetMusicVolume || baseVol, 900);
         }
       }, durationMs);
     }
@@ -674,25 +828,59 @@ class RomanticAudioEngine {
       const now = this.ctx.currentTime;
       this.musicGain.gain.cancelScheduledValues(now);
       this.musicGain.gain.setValueAtTime(Math.max(0.0001, this.musicGain.gain.value), now);
-      this.musicGain.gain.linearRampToValueAtTime(0.2, now + 0.18);
-      this.musicGain.gain.linearRampToValueAtTime(0.55, now + durationMs / 1000);
+      this.musicGain.gain.linearRampToValueAtTime(0.18, now + 0.18);
+      this.musicGain.gain.linearRampToValueAtTime(0.5, now + durationMs / 1000);
     }
   }
 
-  // Acorde mágico imediato ao tocar em "Ativar som e abrir" na tela inicial
+  // Helper de nota de Piano Feltro suave para SFX harmônicos em Fá Maior
+  playFeltPianoNote(freq, startTime, duration = 1.35, peakGain = 0.085) {
+    if (!state.audioEnabled) return;
+    const ctx = this.initContext();
+    if (!ctx || !this.sfxGain) return;
+
+    const osc1 = ctx.createOscillator();
+    const osc2 = ctx.createOscillator();
+    const gain = ctx.createGain();
+    const overtoneGain = ctx.createGain();
+
+    osc1.type = "sine";
+    osc1.frequency.setValueAtTime(freq, startTime);
+
+    osc2.type = "triangle";
+    osc2.frequency.setValueAtTime(freq * 2.0003, startTime);
+    overtoneGain.gain.setValueAtTime(0.14, startTime);
+    overtoneGain.gain.exponentialRampToValueAtTime(0.0001, startTime + duration * 0.55);
+
+    gain.gain.setValueAtTime(0.0001, startTime);
+    gain.gain.linearRampToValueAtTime(peakGain, startTime + 0.02);
+    gain.gain.exponentialRampToValueAtTime(0.0001, startTime + duration);
+
+    osc1.connect(gain);
+    osc2.connect(overtoneGain);
+    overtoneGain.connect(gain);
+    gain.connect(this.sfxGain);
+
+    osc1.start(startTime);
+    osc2.start(startTime);
+    osc1.stop(startTime + duration + 0.04);
+    osc2.stop(startTime + duration + 0.04);
+  }
+
+  // Acorde de Piano Feltro em Fmaj9 ao tocar em "Ativar som e abrir" na tela inicial
   playGateOpenChime() {
     if (!state.audioEnabled) return;
-    this.playHtml5Sfx("chime", 0.9);
+    this.playHtml5Sfx("chime", 0.78);
     const ctx = this.initContext();
     if (!ctx) return;
     const now = ctx.currentTime;
-    [523.25, 659.25, 783.99, 987.77, 1046.5, 1318.51].forEach((freq, idx) => {
-      this.playSoftNote(freq, now + idx * 0.065, 0.95, 0.11, "sine");
+    [174.61, 261.63, 349.23, 440.0, 523.25, 587.33, 659.25, 783.99].forEach((freq, idx) => {
+      this.playFeltPianoNote(freq, now + idx * 0.09, 1.65, 0.075);
     });
   }
 
   // Helper de nota SFX suave
-  playSoftNote(freq, startTime, duration = 0.45, peakGain = 0.06, type = "sine") {
+  playSoftNote(freq, startTime, duration = 0.65, peakGain = 0.06, type = "sine") {
     if (!state.audioEnabled) return;
     const ctx = this.initContext();
     if (!ctx || !this.sfxGain) return;
@@ -703,7 +891,7 @@ class RomanticAudioEngine {
     osc.frequency.setValueAtTime(freq, startTime);
 
     gain.gain.setValueAtTime(0.0001, startTime);
-    gain.gain.linearRampToValueAtTime(peakGain, startTime + 0.015);
+    gain.gain.linearRampToValueAtTime(peakGain, startTime + 0.018);
     gain.gain.exponentialRampToValueAtTime(0.0001, startTime + duration);
 
     osc.connect(gain);
@@ -748,22 +936,22 @@ class RomanticAudioEngine {
     noise.stop(now + durationSec + 0.02);
   }
 
-  // Acerto: arpejo ascendente de 3 notas tipo sino/celesta (C6–E6–G6)
+  // Acerto: arpejo ascendente de Piano Feltro em Fmaj9 (F4 - A4 - C5 - E5 - G5)
   playSuccess() {
     if (!state.audioEnabled) return;
-    this.playHtml5Sfx("success", 0.85);
+    this.playHtml5Sfx("success", 0.76);
     const ctx = this.initContext();
     if (!ctx) return;
     const now = ctx.currentTime;
-    [1046.5, 1318.51, 1567.98].forEach((freq, idx) => {
-      this.playSoftNote(freq, now + idx * 0.095, 0.6, 0.14, "sine");
+    [349.23, 440.0, 523.25, 659.25, 783.99].forEach((freq, idx) => {
+      this.playFeltPianoNote(freq, now + idx * 0.085, 1.15, 0.085);
     });
   }
 
-  // Erro: "toc" de madeira grave e abafado
+  // Erro: "toc" de madeira grave e suave
   playError() {
     if (!state.audioEnabled) return;
-    this.playHtml5Sfx("error", 0.85);
+    this.playHtml5Sfx("error", 0.78);
     const ctx = this.initContext();
     if (!ctx || !this.sfxGain) return;
     const now = ctx.currentTime;
@@ -771,64 +959,71 @@ class RomanticAudioEngine {
     const osc = ctx.createOscillator();
     const gain = ctx.createGain();
     osc.type = "sine";
-    osc.frequency.setValueAtTime(180, now);
-    osc.frequency.exponentialRampToValueAtTime(78, now + 0.16);
+    osc.frequency.setValueAtTime(160, now);
+    osc.frequency.exponentialRampToValueAtTime(73.42, now + 0.17);
 
     gain.gain.setValueAtTime(0.0001, now);
-    gain.gain.linearRampToValueAtTime(0.15, now + 0.012);
-    gain.gain.exponentialRampToValueAtTime(0.0001, now + 0.18);
+    gain.gain.linearRampToValueAtTime(0.13, now + 0.014);
+    gain.gain.exponentialRampToValueAtTime(0.0001, now + 0.19);
 
     osc.connect(gain);
     gain.connect(this.sfxGain);
     osc.start(now);
-    osc.stop(now + 0.2);
+    osc.stop(now + 0.21);
 
-    this.playFilteredNoise(0.06, "lowpass", 420, 0.8, 0.08);
+    this.playFilteredNoise(0.06, "lowpass", 380, 0.8, 0.065);
   }
 
   // Lacre de cera rachando
   playWaxCrack() {
-    this.playFilteredNoise(0.12, "bandpass", 1850, 2.2, 0.14);
-    setTimeout(() => this.playFilteredNoise(0.09, "bandpass", 1320, 1.8, 0.11), 55);
+    this.playFilteredNoise(0.12, "bandpass", 1750, 2.0, 0.12);
+    setTimeout(() => this.playFilteredNoise(0.09, "bandpass", 1260, 1.7, 0.095), 55);
   }
 
-  // Chave/cadeado: dois cliques metálicos (seno alto + ruído passa-alta curto)
+  // Chave/cadeado: dois toques harmônicos cristalinos em Fá Maior (C6 -> F6)
   playKeyUnlock() {
     if (!state.audioEnabled) return;
     const ctx = this.initContext();
     if (!ctx) return;
     const now = ctx.currentTime;
-    this.playSoftNote(2480, now, 0.09, 0.11, "sine");
-    this.playFilteredNoise(0.045, "highpass", 3200, 1.5, 0.08);
-    this.playSoftNote(2960, now + 0.14, 0.11, 0.12, "sine");
+    this.playFeltPianoNote(1046.5, now, 0.45, 0.075);
+    this.playFilteredNoise(0.04, "highpass", 2800, 1.4, 0.055);
+    this.playFeltPianoNote(1396.91, now + 0.13, 0.65, 0.085);
   }
 
-  // Abertura da caixa: glissando de harpa ascendente prolongado + acorde final quente sustentado
+  // Abertura da caixa: arpejo amplo de Piano de Cauda em Fmaj9 + acorde sustentado quente
   playBoxUnlock() {
     if (!state.audioEnabled) return;
-    this.playHtml5Sfx("boxUnlock", 0.9);
+    this.playHtml5Sfx("boxUnlock", 0.82);
     const ctx = this.initContext();
     if (!ctx) return;
     this.duckMusic(3600);
 
     const now = ctx.currentTime;
-    const harpPentatonic = [
-      523.25, 587.33, 659.25, 783.99, 880.0, 1046.5, 1174.66, 1318.51, 1567.98, 1760.0,
+    const pianoArpeggio = [
+      174.61, 220.0, 261.63, 349.23, 440.0, 523.25, 587.33, 659.25, 698.46, 880.0, 1046.5,
     ];
-    harpPentatonic.forEach((freq, idx) => {
-      this.playSoftNote(freq, now + idx * 0.075, 1.05, 0.12, "triangle");
+    pianoArpeggio.forEach((freq, idx) => {
+      this.playFeltPianoNote(freq, now + idx * 0.095, 1.6, 0.08);
     });
 
-    // Acorde final sustentado
-    const chordStart = now + harpPentatonic.length * 0.075;
-    [523.25, 659.25, 783.99, 1046.5, 1318.51].forEach((freq) => {
-      this.playSoftNote(freq, chordStart, 2.3, 0.1, "sine");
+    // Acorde final Fmaj9 sustentado
+    const chordStart = now + pianoArpeggio.length * 0.095;
+    [174.61, 261.63, 349.23, 440.0, 523.25, 659.25, 783.99].forEach((freq) => {
+      this.playFeltPianoNote(freq, chordStart, 2.8, 0.068);
     });
   }
 
-  // Virada de página de papel
+  // Virada de página de papel + sussurro harmônico de piano
   playPageTurn() {
-    this.playFilteredNoise(0.16, "bandpass", 1150, 0.9, 0.11);
+    this.playFilteredNoise(0.16, "bandpass", 1100, 0.9, 0.095);
+    if (!state.audioEnabled) return;
+    const ctx = this.initContext();
+    if (!ctx) return;
+    const now = ctx.currentTime;
+    [293.66, 440.0, 523.25].forEach((freq, idx) => {
+      this.playFeltPianoNote(freq, now + idx * 0.075, 0.95, 0.038);
+    });
   }
 
   // Som sutil de raspar folha de ouro (apenas enquanto move o dedo)
@@ -837,26 +1032,26 @@ class RomanticAudioEngine {
     const nowMs = performance.now();
     if (nowMs - this.lastScratchSoundTime < 75) return;
     this.lastScratchSoundTime = nowMs;
-    this.playFilteredNoise(0.055, "bandpass", 2200, 1.4, 0.065);
+    this.playFilteredNoise(0.055, "bandpass", 2100, 1.3, 0.055);
   }
 
-  // Carimbo ("thump" grave) + Aceitar encontro (acorde maior em cascata)
+  // Carimbo ("thump" grave) + Aceitar encontro (acorde Fmaj9 luminoso em cascata)
   playAcceptEncounter() {
     if (!state.audioEnabled) return;
-    this.playHtml5Sfx("accept", 0.9);
+    this.playHtml5Sfx("accept", 0.85);
     const ctx = this.initContext();
     if (!ctx) return;
     this.duckMusic(2200);
 
     const now = ctx.currentTime;
-    // Thump grave do carimbo
-    this.playSoftNote(110, now, 0.22, 0.16, "sine");
-    this.playFilteredNoise(0.07, "lowpass", 600, 1.0, 0.1);
+    // Thump grave do carimbo em F2 (87.31 Hz)
+    this.playSoftNote(87.31, now, 0.24, 0.15, "sine");
+    this.playFilteredNoise(0.07, "lowpass", 550, 1.0, 0.085);
 
-    // Acorde maior brilhante em cascata
-    const cascade = [523.25, 659.25, 783.99, 987.77, 1046.5, 1318.51, 1567.98];
+    // Acorde Fmaj9 em cascata de piano
+    const cascade = [174.61, 261.63, 349.23, 440.0, 523.25, 659.25, 783.99, 1046.5];
     cascade.forEach((freq, idx) => {
-      this.playSoftNote(freq, now + 0.14 + idx * 0.07, 1.1, 0.12, "sine");
+      this.playFeltPianoNote(freq, now + 0.14 + idx * 0.08, 1.75, 0.085);
     });
   }
 }
@@ -1387,6 +1582,20 @@ function goToStep(targetStep) {
   if (currentStep === targetStep) {
     focusAndAnnounceStep(targetStep);
     return;
+  }
+
+  // Adapta o clima da trilha de piano de acordo com a etapa em que Isabela está
+  const stepMoodMap = {
+    "step-intro": "intro",
+    "step-q1": "q1",
+    "step-q2": "q2",
+    "step-q3": "q3",
+    "step-unlocked": "unlocked",
+    "step-letter": `letter-${state.currentLetterPage || 1}`,
+    "step-scratch": state.dateAccepted ? "finale" : "scratch",
+  };
+  if (targetStep.id && stepMoodMap[targetStep.id]) {
+    soundFX.setStageMood(stepMoodMap[targetStep.id]);
   }
 
   const switchDom = () => {
@@ -2511,6 +2720,7 @@ function revealParagraphsInContainer(container) {
 
 function goToLetterPage(pageNumber, direction = "next") {
   state.currentLetterPage = pageNumber;
+  soundFX.setStageMood(`letter-${pageNumber}`);
   if (el.letterPageBadge) {
     el.letterPageBadge.textContent = `Página ${pageNumber} de 3`;
   }
@@ -3216,6 +3426,7 @@ function setupFinalCouponActions() {
     if (state.dateAccepted) return;
     state.dateAccepted = true;
 
+    soundFX.setStageMood("finale");
     soundFX.playAcceptEncounter();
     navigator.vibrate?.([25, 40, 35]);
 

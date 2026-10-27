@@ -1,0 +1,53 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128" role="img" aria-label="Uma surpresa para Isabela">
+  <defs>
+    <radialGradient id="bg" cx="50%" cy="38%" r="65%">
+      <stop offset="0%" stop-color="#3A0C1C" />
+      <stop offset="65%" stop-color="#1F0711" />
+      <stop offset="100%" stop-color="#12040A" />
+    </radialGradient>
+    <linearGradient id="gold" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#F3E3BD" />
+      <stop offset="50%" stop-color="#E0C48A" />
+      <stop offset="100%" stop-color="#B8924A" />
+    </linearGradient>
+    <linearGradient id="crimson" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#FF6B7D" />
+      <stop offset="38%" stop-color="#D7263D" />
+      <stop offset="100%" stop-color="#7A0A1C" />
+    </linearGradient>
+    <linearGradient id="porcelain" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#FBF8F3" />
+      <stop offset="100%" stop-color="#E7DED2" />
+    </linearGradient>
+  </defs>
+
+  <!-- Fundo escuro noite vinho com borda de folha de ouro -->
+  <rect width="128" height="128" rx="30" fill="url(#bg)" />
+  <rect x="5" y="5" width="118" height="118" rx="26" fill="none" stroke="url(#gold)" stroke-width="2" stroke-opacity="0.65" />
+
+  <!-- Sombra da caixa -->
+  <ellipse cx="64" cy="104" rx="36" ry="7" fill="#070104" opacity="0.65" />
+
+  <!-- Corpo da caixa de porcelana -->
+  <rect x="30" y="52" width="68" height="48" rx="7" fill="url(#porcelain)" stroke="url(#gold)" stroke-width="1.5" />
+
+  <!-- Fita vertical de cetim vermelho -->
+  <rect x="57" y="52" width="14" height="48" fill="url(#crimson)" />
+
+  <!-- Fita horizontal de cetim vermelho -->
+  <rect x="30" y="70" width="68" height="12" fill="url(#crimson)" />
+
+  <!-- Tampa da caixa de porcelana -->
+  <rect x="26" y="40" width="76" height="15" rx="5" fill="#FBF8F3" stroke="url(#gold)" stroke-width="1.5" />
+  <rect x="57" y="40" width="14" height="15" fill="url(#crimson)" />
+
+  <!-- Laço de cetim volumoso no topo -->
+  <path d="M64 40 C50 22, 30 25, 36 39 C40 44, 54 42, 64 40 Z" fill="url(#crimson)" stroke="#F3E3BD" stroke-width="0.8" />
+  <path d="M64 40 C78 22, 98 25, 92 39 C88 44, 74 42, 64 40 Z" fill="url(#crimson)" stroke="#F3E3BD" stroke-width="0.8" />
+  <rect x="58" y="34" width="12" height="10" rx="4" fill="#D7263D" stroke="url(#gold)" stroke-width="1" />
+
+  <!-- Cadeado de coração em ouro champanhe -->
+  <path d="M58 68 V63 A6 6 0 0 1 70 63 V68" fill="none" stroke="url(#gold)" stroke-width="3" stroke-linecap="round" />
+  <path d="M64 86 C55 80, 52 72, 56 67 C59 64, 63 66, 64 69 C65 66, 69 64, 72 67 C76 72, 73 80, 64 86 Z" fill="url(#gold)" stroke="#7E6129" stroke-width="1.2" />
+  <circle cx="64" cy="74" r="2" fill="#2B0B14" />
+</svg>

@@ -1,65 +1,86 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 600 600" width="100%" height="100%">
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 600 600" role="img" aria-label="Ilustração romântica do casal Caique e Isabela">
   <defs>
-    <linearGradient id="bgGrad" x1="0%" y1="0%" x2="100%" y2="100%">
-      <stop offset="0%" stop-color="#3b0d1e"/>
-      <stop offset="50%" stop-color="#59142c"/>
-      <stop offset="100%" stop-color="#2a0815"/>
-    </linearGradient>
-    <radialGradient id="glowGrad" cx="50%" cy="42%" r="48%">
-      <stop offset="0%" stop-color="#f7d6e0" stop-opacity="0.28"/>
-      <stop offset="60%" stop-color="#d4af37" stop-opacity="0.1"/>
-      <stop offset="100%" stop-color="#3b0d1e" stop-opacity="0"/>
+    <radialGradient id="bgGlow" cx="50%" cy="42%" r="65%">
+      <stop offset="0%" stop-color="#3A0C1C" />
+      <stop offset="58%" stop-color="#1F0711" />
+      <stop offset="100%" stop-color="#12040A" />
     </radialGradient>
-    <linearGradient id="goldGrad" x1="0%" y1="0%" x2="100%" y2="100%">
-      <stop offset="0%" stop-color="#f6e29c"/>
-      <stop offset="50%" stop-color="#d4af37"/>
-      <stop offset="100%" stop-color="#aa8220"/>
+    <radialGradient id="candleHalo" cx="50%" cy="45%" r="42%">
+      <stop offset="0%" stop-color="#F3E3BD" stop-opacity="0.32" />
+      <stop offset="55%" stop-color="#B5122B" stop-opacity="0.16" />
+      <stop offset="100%" stop-color="#12040A" stop-opacity="0" />
+    </radialGradient>
+    <linearGradient id="goldFoil" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#F3E3BD" />
+      <stop offset="50%" stop-color="#E0C48A" />
+      <stop offset="100%" stop-color="#B8924A" />
     </linearGradient>
-    <linearGradient id="roseGrad" x1="0%" y1="0%" x2="0%" y2="100%">
-      <stop offset="0%" stop-color="#fae8ed"/>
-      <stop offset="100%" stop-color="#f2b8c6"/>
+    <linearGradient id="crimsonHeart" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#FF6B7D" />
+      <stop offset="45%" stop-color="#D7263D" />
+      <stop offset="100%" stop-color="#7A0A1C" />
     </linearGradient>
   </defs>
 
-  <!-- Background -->
-  <rect width="600" height="600" fill="url(#bgGrad)"/>
-  <circle cx="300" cy="260" r="260" fill="url(#glowGrad)"/>
+  <!-- Fundo noite à luz de velas -->
+  <rect width="600" height="600" fill="url(#bgGlow)" />
+  <circle cx="300" cy="260" r="250" fill="url(#candleHalo)" />
 
-  <!-- Decorative Stars / Sparkles -->
-  <g fill="#f6e29c" opacity="0.65">
-    <circle cx="110" cy="120" r="2.5"/>
-    <circle cx="485" cy="105" r="3"/>
-    <circle cx="510" cy="240" r="2"/>
-    <circle cx="85" cy="290" r="2"/>
-    <circle cx="150" cy="430" r="2.5"/>
-    <circle cx="460" cy="410" r="2.5"/>
-    <path d="M180 95 L183 104 L192 107 L183 110 L180 119 L177 110 L168 107 L177 104 Z" opacity="0.8"/>
-    <path d="M430 145 L432 152 L439 154 L432 156 L430 163 L428 156 L421 154 L428 152 Z" opacity="0.7"/>
+  <!-- Moldura interna de folha de ouro champanhe -->
+  <rect x="26" y="26" width="548" height="548" rx="22" fill="none" stroke="url(#goldFoil)" stroke-width="1.6" stroke-opacity="0.48" />
+  <rect x="38" y="38" width="524" height="524" rx="16" fill="none" stroke="url(#goldFoil)" stroke-width="0.8" stroke-opacity="0.25" />
+
+  <!-- Poeira dourada -->
+  <g fill="#F3E3BD" opacity="0.75">
+    <circle cx="110" cy="115" r="2.5" />
+    <circle cx="485" cy="105" r="3" />
+    <circle cx="150" cy="210" r="1.8" />
+    <circle cx="460" cy="220" r="2.2" />
+    <circle cx="95" cy="360" r="2" />
+    <circle cx="505" cy="350" r="2.6" />
+    <path d="M300 78 L304 90 L316 94 L304 98 L300 110 L296 98 L284 94 L296 90 Z" fill="url(#goldFoil)" />
   </g>
 
-  <!-- Subtle Arch Frame -->
-  <path d="M145 480 L145 235 A155 155 0 0 1 455 235 L455 480" fill="none" stroke="url(#goldGrad)" stroke-width="2" stroke-dasharray="6 6" opacity="0.45"/>
-  <path d="M160 480 L160 235 A140 140 0 0 1 440 235 L440 480" fill="none" stroke="url(#goldGrad)" stroke-width="1.2" opacity="0.35"/>
+  <!-- Coração central iluminado -->
+  <path d="M300 328
+           C300 328 188 250 188 176
+           C188 134 222 104 260 104
+           C282 104 294 116 300 128
+           C306 116 318 104 340 104
+           C378 104 412 134 412 176
+           C412 250 300 328 300 328 Z"
+        fill="url(#crimsonHeart)" opacity="0.22" />
 
-  <!-- Floating Heart Centerpiece -->
-  <path d="M300 215 C300 192, 265 178, 250 198 C234 218, 255 246, 300 278 C345 246, 366 218, 350 198 C335 178, 300 192, 300 215 Z" fill="url(#roseGrad)" stroke="url(#goldGrad)" stroke-width="2.5"/>
+  <path d="M300 306
+           C300 306 208 242 208 180
+           C208 145 236 120 266 120
+           C285 120 295 130 300 140
+           C305 130 315 120 334 120
+           C364 120 392 145 392 180
+           C392 242 300 306 300 306 Z"
+        fill="url(#crimsonHeart)" stroke="url(#goldFoil)" stroke-width="2.5" />
 
-  <!-- Minimalist Romantic Couple Illustration (Line Art + Soft Fill) -->
-  <g transform="translate(0, 15)">
-    <!-- Left Figure (Caique) -->
-    <circle cx="258" cy="315" r="28" fill="#f9f1e8" opacity="0.92"/>
-    <path d="M210 435 C210 375, 240 355, 275 355 C295 355, 305 370, 310 435 Z" fill="#d4af37" opacity="0.85"/>
-    <!-- Right Figure (Isabela) -->
-    <circle cx="342" cy="323" r="26" fill="#f7d6e0" opacity="0.95"/>
-    <path d="M292 435 C298 378, 312 362, 342 362 C372 362, 392 382, 396 435 Z" fill="#f2b8c6" opacity="0.9"/>
+  <!-- Silhueta delicada do casal + monograma -->
+  <g transform="translate(0, 12)">
+    <circle cx="266" cy="212" r="24" fill="#FFFBF5" opacity="0.94" />
+    <path d="M224 292 C224 254 252 242 268 242 C284 242 304 254 306 292" fill="#FFFBF5" opacity="0.92" />
+
+    <circle cx="332" cy="220" r="22" fill="#F4D3D9" opacity="0.95" />
+    <path d="M294 292 C296 258 315 248 332 248 C349 248 372 258 374 292" fill="#F4D3D9" opacity="0.92" />
   </g>
 
-  <!-- Gold Banner Bottom -->
-  <rect x="90" y="465" width="420" height="76" rx="14" fill="#260712" fill-opacity="0.75" stroke="url(#goldGrad)" stroke-width="1.5"/>
-  <text x="300" y="497" text-anchor="middle" fill="#fffaf5" font-family="Georgia, serif" font-size="22" font-weight="bold" letter-spacing="1">
-    Isabela &amp; Caique
+  <!-- Raminho de rosa em ouro champanhe -->
+  <path d="M210 368 Q300 386 390 368" fill="none" stroke="url(#goldFoil)" stroke-width="1.8" stroke-linecap="round" />
+  <circle cx="300" cy="377" r="4.5" fill="#D7263D" stroke="url(#goldFoil)" stroke-width="1.5" />
+
+  <!-- Textos elegantes -->
+  <text x="300" y="438" text-anchor="middle" fill="#FFF6F2" font-family="Georgia, 'Cormorant Garamond', serif" font-style="italic" font-size="44">
+    Caique &amp; Isabela
   </text>
-  <text x="300" y="523" text-anchor="middle" fill="#f7d6e0" font-family="sans-serif" font-size="13" opacity="0.85">
-    Substitua pela foto do casal em assets/foto-casal.jpg
+  <text x="300" y="482" text-anchor="middle" fill="#E0C48A" font-family="'Plus Jakarta Sans', sans-serif" font-size="16" letter-spacing="4" font-weight="600">
+    NOSSO CAPÍTULO ESPECIAL
+  </text>
+  <text x="300" y="525" text-anchor="middle" fill="#E9C9D1" opacity="0.72" font-family="'Plus Jakarta Sans', sans-serif" font-size="13">
+    (Coloque sua foto favorita em assets/foto-casal.jpg)
   </text>
 </svg>

@@ -12,10 +12,10 @@ const CONFIG = {
   fotoCasalReserva: "assets/foto-casal-placeholder.svg",
   legendaPolaroid: "O meu lugar favorito no mundo é ao seu lado ❤️",
 
-  // Configuração da música de fundo (Balada Acústica de Piano Feltro em Fá Maior no HTML5 <audio>)
+  // Configuração da música de fundo (Piano Romântico Cristalino sem graves pesados no HTML5 <audio>)
   musica: {
-    arquivo: "assets/musica.wav?v=2",
-    volume: 0.64,
+    arquivo: "assets/musica.wav?v=3",
+    volume: 0.50,
     fadeInMs: 900,
   },
 
@@ -289,7 +289,7 @@ class RomanticAudioEngine {
     this.isPlayingMusic = false;
     this.usingNativeAudio = false;
     this.currentMoodStage = "intro";
-    this.targetMusicVolume = (CONFIG.musica && CONFIG.musica.volume) || 0.64;
+    this.targetMusicVolume = (CONFIG.musica && CONFIG.musica.volume) || 0.50;
     this.volumeFadeTimer = null;
 
     this.arpeggioTimer = null;
@@ -370,85 +370,85 @@ class RomanticAudioEngine {
         return this.encodeMiniWav(buf, sr);
       };
 
-      // Acordes em Fá Maior (Fmaj9, Bbmaj9, Dm9) para harmonizar perfeitamente com assets/musica.wav
+      // Acordes cristalinos em Fá Maior (registro médio-agudo C4 a C6, sem notas graves pesadas)
       this.sfxUrls.chime = synthFeltPianoChord(
-        [174.61, 261.63, 349.23, 440.0, 523.25, 587.33, 659.25, 783.99],
+        [261.63, 349.23, 440.0, 523.25, 659.25, 783.99, 1046.5],
         0.095,
-        1.45,
-        0.44
+        1.35,
+        0.36
       );
       this.sfxUrls.success = synthFeltPianoChord(
         [349.23, 440.0, 523.25, 659.25, 783.99],
         0.085,
-        1.1,
-        0.44
+        1.05,
+        0.36
       );
       this.sfxUrls.boxUnlock = synthFeltPianoChord(
-        [174.61, 220.0, 261.63, 349.23, 440.0, 523.25, 587.33, 659.25, 698.46, 880.0, 1046.5],
+        [261.63, 349.23, 440.0, 523.25, 587.33, 659.25, 698.46, 880.0, 1046.5],
         0.105,
-        1.65,
-        0.4
+        1.5,
+        0.35
       );
       this.sfxUrls.accept = synthFeltPianoChord(
-        [174.61, 261.63, 349.23, 440.0, 523.25, 659.25, 783.99, 1046.5],
+        [261.63, 349.23, 440.0, 523.25, 659.25, 783.99, 1046.5],
         0.09,
-        1.55,
-        0.44
+        1.45,
+        0.36
       );
       this.sfxUrls.pageTurn = synthFeltPianoChord(
-        [293.66, 440.0, 523.25, 659.25],
+        [349.23, 440.0, 523.25, 659.25],
         0.08,
-        0.95,
-        0.26
+        0.85,
+        0.22
       );
 
-      // Erro ("toc" suave de madeira de piano)
-      const errBuf = new Float32Array(Math.floor(sr * 0.24));
+      // Erro ("toc" suave e leve, sem sub-grave)
+      const errBuf = new Float32Array(Math.floor(sr * 0.2));
       for (let i = 0; i < errBuf.length; i++) {
         const t = i / sr;
-        const f = 146.83 * Math.exp(-t * 3.8);
-        const env = t < 0.012 ? t / 0.012 : Math.exp(-t * 13);
-        errBuf[i] = Math.sin(2 * Math.PI * f * t) * 0.42 * env;
+        const f = 240 * Math.exp(-t * 2.8);
+        const env = t < 0.012 ? t / 0.012 : Math.exp(-t * 14);
+        errBuf[i] = Math.sin(2 * Math.PI * f * t) * 0.32 * env;
       }
       this.sfxUrls.error = this.encodeMiniWav(errBuf, sr);
 
       this.sfxPlayer = new Audio();
       this.sfxPlayer.preload = "auto";
 
-      // Loop WAV de Piano Feltro calmo em RAM (~18s em Fá Maior) caso assets/musica.wav ainda esteja baixando no 4G
+      // Loop WAV de Piano Cristalino em RAM (~12s em Fá Maior, sem graves abaixo de C4) caso a rede esteja lenta
       const barSec = 3.0;
       const bars = 4;
       const totalSamples = Math.floor(sr * barSec * bars);
       const mBuf = new Float32Array(totalSamples);
       const feltEvents = [
-        // Compasso 1: Fmaj9
-        { t: 0.0, f: 87.31, d: 3.1, g: 0.22 },
-        { t: 0.38, f: 174.61, d: 2.7, g: 0.18 },
-        { t: 0.75, f: 220.0, d: 2.4, g: 0.17 },
-        { t: 1.12, f: 261.63, d: 2.2, g: 0.17 },
-        { t: 1.5, f: 329.63, d: 2.1, g: 0.21 },
-        { t: 2.25, f: 392.0, d: 1.7, g: 0.2 },
+        // Compasso 1: Fmaj9 (registro médio-agudo leve)
+        { t: 0.0, f: 261.63, d: 2.6, g: 0.14 },
+        { t: 0.38, f: 349.23, d: 2.4, g: 0.15 },
+        { t: 0.75, f: 440.0, d: 2.2, g: 0.16 },
+        { t: 1.12, f: 523.25, d: 2.0, g: 0.17 },
+        { t: 1.5, f: 659.25, d: 1.9, g: 0.18 },
+        { t: 2.25, f: 523.25, d: 1.5, g: 0.15 },
         // Compasso 2: Dm9
-        { t: 3.0, f: 73.42, d: 3.1, g: 0.22 },
-        { t: 3.38, f: 146.83, d: 2.7, g: 0.18 },
-        { t: 3.75, f: 220.0, d: 2.4, g: 0.17 },
-        { t: 4.12, f: 261.63, d: 2.2, g: 0.18 },
-        { t: 4.5, f: 329.63, d: 2.1, g: 0.21 },
-        { t: 5.25, f: 349.23, d: 1.7, g: 0.2 },
+        { t: 3.0, f: 293.66, d: 2.6, g: 0.14 },
+        { t: 3.38, f: 349.23, d: 2.4, g: 0.15 },
+        { t: 3.75, f: 440.0, d: 2.2, g: 0.16 },
+        { t: 4.12, f: 523.25, d: 2.0, g: 0.17 },
+        { t: 4.5, f: 659.25, d: 1.9, g: 0.18 },
+        { t: 5.25, f: 587.33, d: 1.5, g: 0.16 },
         // Compasso 3: Bbmaj9
-        { t: 6.0, f: 116.54, d: 3.1, g: 0.21 },
-        { t: 6.38, f: 174.61, d: 2.7, g: 0.18 },
-        { t: 6.75, f: 220.0, d: 2.4, g: 0.18 },
-        { t: 7.12, f: 293.66, d: 2.2, g: 0.2 },
-        { t: 7.5, f: 392.0, d: 2.1, g: 0.21 },
-        { t: 8.25, f: 349.23, d: 1.7, g: 0.19 },
-        // Compasso 4: C9sus4 -> C7
-        { t: 9.0, f: 130.81, d: 3.1, g: 0.21 },
-        { t: 9.38, f: 196.0, d: 2.7, g: 0.18 },
-        { t: 9.75, f: 233.08, d: 2.4, g: 0.17 },
-        { t: 10.12, f: 293.66, d: 1.6, g: 0.19 },
-        { t: 10.5, f: 349.23, d: 1.5, g: 0.2 },
-        { t: 11.25, f: 329.63, d: 1.8, g: 0.19 },
+        { t: 6.0, f: 233.08, d: 2.5, g: 0.13 },
+        { t: 6.38, f: 349.23, d: 2.4, g: 0.15 },
+        { t: 6.75, f: 440.0, d: 2.2, g: 0.16 },
+        { t: 7.12, f: 587.33, d: 2.0, g: 0.17 },
+        { t: 7.5, f: 698.46, d: 1.9, g: 0.18 },
+        { t: 8.25, f: 587.33, d: 1.5, g: 0.15 },
+        // Compasso 4: C9sus4 -> C
+        { t: 9.0, f: 261.63, d: 2.5, g: 0.14 },
+        { t: 9.38, f: 349.23, d: 2.3, g: 0.15 },
+        { t: 9.75, f: 392.0, d: 2.2, g: 0.16 },
+        { t: 10.12, f: 523.25, d: 1.6, g: 0.17 },
+        { t: 10.5, f: 587.33, d: 1.4, g: 0.17 },
+        { t: 11.25, f: 659.25, d: 1.6, g: 0.16 },
       ];
       for (const ev of feltEvents) {
         const start = Math.floor(ev.t * sr);
@@ -504,23 +504,28 @@ class RomanticAudioEngine {
       if (!AudioCtx) return null;
       this.ctx = new AudioCtx();
 
-      // Master Gain direto com filtro passa-baixa aveludado (2600 Hz) para timbre de piano íntimo
+      // Master Gain direto com filtro passa-alta (200 Hz) para remover 100% qualquer grave incômodo
       this.masterGain = this.ctx.createGain();
       this.masterGain.gain.setValueAtTime(1.0, this.ctx.currentTime);
       this.masterGain.connect(this.ctx.destination);
 
+      this.highpassNode = this.ctx.createBiquadFilter();
+      this.highpassNode.type = "highpass";
+      this.highpassNode.frequency.setValueAtTime(200, this.ctx.currentTime);
+      this.highpassNode.connect(this.masterGain);
+
       this.filterNode = this.ctx.createBiquadFilter();
       this.filterNode.type = "lowpass";
-      this.filterNode.frequency.setValueAtTime(2600, this.ctx.currentTime);
-      this.filterNode.connect(this.masterGain);
+      this.filterNode.frequency.setValueAtTime(3800, this.ctx.currentTime);
+      this.filterNode.connect(this.highpassNode);
 
       this.musicGain = this.ctx.createGain();
-      this.musicGain.gain.value = 0.5;
-      this.musicGain.gain.setValueAtTime(0.5, this.ctx.currentTime);
+      this.musicGain.gain.value = 0.42;
+      this.musicGain.gain.setValueAtTime(0.42, this.ctx.currentTime);
       this.musicGain.connect(this.filterNode);
 
       this.sfxGain = this.ctx.createGain();
-      this.sfxGain.gain.setValueAtTime(0.9, this.ctx.currentTime);
+      this.sfxGain.gain.setValueAtTime(0.78, this.ctx.currentTime);
       this.sfxGain.connect(this.filterNode);
     }
 
@@ -583,16 +588,16 @@ class RomanticAudioEngine {
     if (!state.audioEnabled) return;
 
     const moodProfiles = {
-      intro: { vol: 0.62, cutoff: 2500, chord: [174.61, 261.63, 349.23, 440.0, 523.25] }, // Fmaj7 acolhedor
-      q1: { vol: 0.56, cutoff: 2350, chord: [196.0, 293.66, 349.23, 440.0] },             // Gm7 curioso e íntimo
-      q2: { vol: 0.58, cutoff: 2450, chord: [146.83, 220.0, 293.66, 349.23, 440.0] },     // Dm7 doce
-      q3: { vol: 0.6, cutoff: 2600, chord: [233.08, 293.66, 349.23, 440.0, 523.25] },     // Bbmaj9 expectativa
-      unlocked: { vol: 0.68, cutoff: 3100, chord: null },                                  // Abertura da caixa (já tem playBoxUnlock)
-      "letter-1": { vol: 0.48, cutoff: 2100, chord: [174.61, 220.0, 261.63, 329.63] },    // Piano bem baixinho e aveludado para leitura
-      "letter-2": { vol: 0.46, cutoff: 2000, chord: [146.83, 220.0, 261.63, 329.63, 392.0] }, // Dm9 profundo e contemplativo ("O que é o amor?")
-      "letter-3": { vol: 0.6, cutoff: 2850, chord: [233.08, 349.23, 440.0, 523.25, 659.25] }, // Bbmaj9 luminoso e celestial (Santa Teresinha)
-      scratch: { vol: 0.58, cutoff: 2650, chord: [196.0, 293.66, 349.23, 523.25] },       // Gm11 leve e divertido
-      finale: { vol: 0.74, cutoff: 3400, chord: null },                                    // Clímax romântico após aceitar o encontro
+      intro: { vol: 0.48, cutoff: 3600, chord: [261.63, 349.23, 440.0, 523.25, 659.25] }, // Fmaj7 cristalino
+      q1: { vol: 0.44, cutoff: 3400, chord: [293.66, 349.23, 440.0, 587.33] },             // Gm7/D4 leve
+      q2: { vol: 0.46, cutoff: 3500, chord: [293.66, 349.23, 440.0, 523.25] },             // Dm7 doce
+      q3: { vol: 0.48, cutoff: 3600, chord: [293.66, 349.23, 440.0, 523.25, 659.25] },     // Bbmaj9 expectativa
+      unlocked: { vol: 0.54, cutoff: 4000, chord: null },                                  // Abertura da caixa
+      "letter-1": { vol: 0.36, cutoff: 3100, chord: [261.63, 349.23, 440.0, 523.25] },     // Piano suave para leitura
+      "letter-2": { vol: 0.34, cutoff: 3000, chord: [293.66, 349.23, 440.0, 523.25, 659.25] }, // Dm9 contemplativo
+      "letter-3": { vol: 0.48, cutoff: 3800, chord: [349.23, 440.0, 523.25, 659.25, 783.99] }, // Luminoso e celestial (Santa Teresinha)
+      scratch: { vol: 0.45, cutoff: 3600, chord: [293.66, 349.23, 440.0, 523.25] },        // Leve e divertido
+      finale: { vol: 0.58, cutoff: 4200, chord: null },                                    // Clímax romântico após aceitar o encontro
     };
 
     const profile = moodProfiles[stage] || moodProfiles.intro;
@@ -624,10 +629,10 @@ class RomanticAudioEngine {
     // Não usa createMediaElementSource para garantir que o som saia no canal de mídia nativo do celular!
     if (el.bgMusicAudio) {
       try {
-        const mainTrackUrl = (CONFIG.musica && CONFIG.musica.arquivo) || "assets/musica.wav?v=2";
+        const mainTrackUrl = (CONFIG.musica && CONFIG.musica.arquivo) || "assets/musica.wav?v=3";
         const currentSrc = el.bgMusicAudio.getAttribute("src") || "";
 
-        // Se o arquivo de rede ainda não terminou de baixar no 4G, toca o Piano Feltro em RAM no milissegundo zero
+        // Se o arquivo de rede ainda não terminou de baixar no 4G, toca o Piano Cristalino em RAM no milissegundo zero
         // e já faz o upgrade transparente para a balada completa assim que ela carregar em background
         if (el.bgMusicAudio.readyState < 2 && this.instantMusicWavUrl && currentSrc !== this.instantMusicWavUrl) {
           el.bgMusicAudio.src = this.instantMusicWavUrl;
@@ -637,7 +642,7 @@ class RomanticAudioEngine {
         }
 
         el.bgMusicAudio.muted = false;
-        el.bgMusicAudio.volume = this.targetMusicVolume || 0.64;
+        el.bgMusicAudio.volume = this.targetMusicVolume || 0.50;
 
         const playPromise = el.bgMusicAudio.play();
         this.isPlayingMusic = true;
@@ -701,12 +706,12 @@ class RomanticAudioEngine {
   startMusicBoxGenerator() {
     if (this.arpeggioTimer) clearInterval(this.arpeggioTimer);
 
-    // Progressão lenta de Piano Feltro em Fá Maior (Fmaj9 -> Dm9 -> Bbmaj9 -> C9sus4)
+    // Progressão lenta e cristalina de Piano em Fá Maior (sem graves abaixo de C4)
     const chords = [
-      { pad: [87.31, 174.61, 220.0], notes: [261.63, 329.63, 392.0, 523.25, 440.0, 392.0, 329.63, 261.63] },
-      { pad: [73.42, 146.83, 220.0], notes: [261.63, 329.63, 392.0, 440.0, 392.0, 349.23, 329.63, 261.63] },
-      { pad: [116.54, 174.61, 220.0], notes: [293.66, 349.23, 440.0, 523.25, 440.0, 392.0, 349.23, 293.66] },
-      { pad: [130.81, 196.0, 233.08], notes: [293.66, 349.23, 392.0, 440.0, 392.0, 349.23, 329.63, 293.66] },
+      { pad: [261.63, 349.23, 440.0], notes: [523.25, 659.25, 783.99, 880.0, 783.99, 659.25, 523.25, 440.0] },
+      { pad: [293.66, 349.23, 440.0], notes: [523.25, 587.33, 659.25, 783.99, 659.25, 587.33, 523.25, 440.0] },
+      { pad: [293.66, 349.23, 466.16], notes: [523.25, 587.33, 698.46, 783.99, 698.46, 587.33, 523.25, 440.0] },
+      { pad: [261.63, 349.23, 392.0], notes: [523.25, 587.33, 659.25, 783.99, 659.25, 587.33, 523.25, 392.0] },
     ];
 
     const stepMs = 560; // ~53 BPM (andamento lento, calmo e respirado de balada de piano)
@@ -867,15 +872,15 @@ class RomanticAudioEngine {
     osc2.stop(startTime + duration + 0.04);
   }
 
-  // Acorde de Piano Feltro em Fmaj9 ao tocar em "Ativar som e abrir" na tela inicial
+  // Acorde de Piano Cristalino em Fmaj9 ao tocar em "Ativar som e abrir" na tela inicial
   playGateOpenChime() {
     if (!state.audioEnabled) return;
-    this.playHtml5Sfx("chime", 0.78);
+    this.playHtml5Sfx("chime", 0.68);
     const ctx = this.initContext();
     if (!ctx) return;
     const now = ctx.currentTime;
-    [174.61, 261.63, 349.23, 440.0, 523.25, 587.33, 659.25, 783.99].forEach((freq, idx) => {
-      this.playFeltPianoNote(freq, now + idx * 0.09, 1.65, 0.075);
+    [261.63, 349.23, 440.0, 523.25, 587.33, 659.25, 783.99, 1046.5].forEach((freq, idx) => {
+      this.playFeltPianoNote(freq, now + idx * 0.09, 1.5, 0.065);
     });
   }
 
@@ -991,38 +996,38 @@ class RomanticAudioEngine {
     this.playFeltPianoNote(1396.91, now + 0.13, 0.65, 0.085);
   }
 
-  // Abertura da caixa: arpejo amplo de Piano de Cauda em Fmaj9 + acorde sustentado quente
+  // Abertura da caixa: arpejo cristalino de Piano em Fmaj9 + acorde sustentado doce
   playBoxUnlock() {
     if (!state.audioEnabled) return;
-    this.playHtml5Sfx("boxUnlock", 0.82);
+    this.playHtml5Sfx("boxUnlock", 0.72);
     const ctx = this.initContext();
     if (!ctx) return;
     this.duckMusic(3600);
 
     const now = ctx.currentTime;
     const pianoArpeggio = [
-      174.61, 220.0, 261.63, 349.23, 440.0, 523.25, 587.33, 659.25, 698.46, 880.0, 1046.5,
+      261.63, 349.23, 440.0, 523.25, 587.33, 659.25, 698.46, 880.0, 1046.5,
     ];
     pianoArpeggio.forEach((freq, idx) => {
-      this.playFeltPianoNote(freq, now + idx * 0.095, 1.6, 0.08);
+      this.playFeltPianoNote(freq, now + idx * 0.095, 1.5, 0.07);
     });
 
-    // Acorde final Fmaj9 sustentado
+    // Acorde final Fmaj9 sustentado (sem notas graves)
     const chordStart = now + pianoArpeggio.length * 0.095;
-    [174.61, 261.63, 349.23, 440.0, 523.25, 659.25, 783.99].forEach((freq) => {
-      this.playFeltPianoNote(freq, chordStart, 2.8, 0.068);
+    [261.63, 349.23, 440.0, 523.25, 659.25, 783.99].forEach((freq) => {
+      this.playFeltPianoNote(freq, chordStart, 2.5, 0.058);
     });
   }
 
   // Virada de página de papel + sussurro harmônico de piano
   playPageTurn() {
-    this.playFilteredNoise(0.16, "bandpass", 1100, 0.9, 0.095);
+    this.playFilteredNoise(0.16, "bandpass", 1100, 0.9, 0.085);
     if (!state.audioEnabled) return;
     const ctx = this.initContext();
     if (!ctx) return;
     const now = ctx.currentTime;
-    [293.66, 440.0, 523.25].forEach((freq, idx) => {
-      this.playFeltPianoNote(freq, now + idx * 0.075, 0.95, 0.038);
+    [349.23, 440.0, 523.25].forEach((freq, idx) => {
+      this.playFeltPianoNote(freq, now + idx * 0.075, 0.9, 0.034);
     });
   }
 
@@ -1035,23 +1040,21 @@ class RomanticAudioEngine {
     this.playFilteredNoise(0.055, "bandpass", 2100, 1.3, 0.055);
   }
 
-  // Carimbo ("thump" grave) + Aceitar encontro (acorde Fmaj9 luminoso em cascata)
+  // Carimbo suave + Aceitar encontro (acorde Fmaj9 luminoso em cascata, sem sub-grave)
   playAcceptEncounter() {
     if (!state.audioEnabled) return;
-    this.playHtml5Sfx("accept", 0.85);
+    this.playHtml5Sfx("accept", 0.75);
     const ctx = this.initContext();
     if (!ctx) return;
     this.duckMusic(2200);
 
     const now = ctx.currentTime;
-    // Thump grave do carimbo em F2 (87.31 Hz)
-    this.playSoftNote(87.31, now, 0.24, 0.15, "sine");
-    this.playFilteredNoise(0.07, "lowpass", 550, 1.0, 0.085);
+    this.playFilteredNoise(0.065, "bandpass", 850, 1.1, 0.075);
 
-    // Acorde Fmaj9 em cascata de piano
-    const cascade = [174.61, 261.63, 349.23, 440.0, 523.25, 659.25, 783.99, 1046.5];
+    // Acorde Fmaj9 em cascata de piano cristalino
+    const cascade = [261.63, 349.23, 440.0, 523.25, 659.25, 783.99, 1046.5];
     cascade.forEach((freq, idx) => {
-      this.playFeltPianoNote(freq, now + 0.14 + idx * 0.08, 1.75, 0.085);
+      this.playFeltPianoNote(freq, now + 0.1 + idx * 0.08, 1.6, 0.072);
     });
   }
 }
@@ -1246,16 +1249,10 @@ function initPersonalization() {
 }
 
 function setupIntroSplitName() {
-  if (!el.introSplitName || state.reducedMotion) return;
-  const text = el.introSplitName.textContent.trim();
-  el.introSplitName.innerHTML = "";
-  Array.from(text).forEach((ch, idx) => {
-    const span = document.createElement("span");
-    span.className = "split-char";
-    span.style.setProperty("--char-delay", `${120 + idx * 35}ms`);
-    span.textContent = ch;
-    el.introSplitName.appendChild(span);
-  });
+  // Mantém "Isabela" como palavra contínua sem fatiar em inline-blocks individuais,
+  // evitando que o hasteamento itálico do "l" seja cortado ou borrado no iOS Safari / Chrome
+  if (!el.introSplitName) return;
+  el.introSplitName.textContent = el.introSplitName.textContent.trim();
 }
 
 // Pré-carrega assets da etapa final quando a pessoa chega na Pergunta 3
@@ -1422,10 +1419,6 @@ function setupGateAndAudio() {
     setTimeout(() => {
       el.stepGate.hidden = true;
       el.stepGate.classList.remove("gate-opening", "gate-dissolve");
-      if (el.stepIntro) {
-        const heading = el.stepIntro.querySelector("h1");
-        if (heading) heading.focus({ preventScroll: true });
-      }
     }, 920);
   }
 
@@ -1560,12 +1553,8 @@ function applyStepStagger(stepEl) {
 function focusAndAnnounceStep(stepEl) {
   if (!stepEl) return;
   const heading = stepEl.querySelector("h1, h2, h3");
-  if (heading) {
-    if (!heading.hasAttribute("tabindex")) heading.setAttribute("tabindex", "-1");
-    heading.focus({ preventScroll: true });
-    if (el.srAnnouncer) {
-      el.srAnnouncer.textContent = heading.textContent.trim();
-    }
+  if (heading && el.srAnnouncer) {
+    el.srAnnouncer.textContent = heading.textContent.trim();
   }
 
   // Rola suavemente para o topo apenas se necessário

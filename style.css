@@ -1525,40 +1525,67 @@ input:focus-visible,
   color: var(--leaf-dark);
 }
 
+/* Remove qualquer borda/retângulo azul de foco em títulos no Safari, Google App e Chrome */
+h1:focus,
+h2:focus,
+h3:focus,
+h4:focus,
+[tabindex="-1"]:focus,
+.main-title:focus,
+.step-title:focus {
+  outline: none !important;
+  box-shadow: none !important;
+}
+
 .main-title {
   font-family: var(--font-display);
-  font-variation-settings: "opsz" 72, "SOFT" 80;
+  font-variation-settings: "opsz" 48, "SOFT" 50;
   font-size: clamp(1.75rem, 6.4vw, 2.3rem);
   font-weight: 600;
-  line-height: 1.18;
+  line-height: 1.22;
   letter-spacing: -0.01em;
   color: var(--ink);
   margin-bottom: 14px;
+  outline: none;
+}
+
+.intro-title-prefix {
+  display: block;
 }
 
 .intro-name-wrap {
   position: relative;
   display: inline-block;
-  padding-bottom: 4px;
+  padding: 2px 6px 5px;
+  overflow: visible;
 }
 
+/* Mantém "Isabela" como palavra contínua (sem quebrar em inline-blocks por letra)
+   para que o hasteamento itálico do "l" nunca seja cortado ou borrado no iOS/Safari/Chrome */
 .intro-name-italic {
+  display: inline-block;
   font-family: var(--font-display);
+  font-variation-settings: "opsz" 36, "SOFT" 40;
   font-style: italic;
   font-weight: 700;
+  font-synthesis: none;
   color: var(--crimson-500);
+  padding: 0 0.08em;
+  overflow: visible;
+  -webkit-font-smoothing: antialiased;
+  animation: charRevealUp 0.6s var(--ease-out-expo) 0.12s both;
 }
 
-/* Reveal por letra do nome na Intro */
+/* Reveal suave do nome na Intro */
 .split-char {
-  display: inline-block;
-  opacity: 0;
-  transform: translateY(65%);
-  animation: charRevealUp 0.55s var(--ease-out-expo) forwards;
-  animation-delay: var(--char-delay, 0ms);
+  display: inline;
 }
 
 @keyframes charRevealUp {
+  from {
+    opacity: 0;
+    transform: translateY(35%);
+  }
   to {
     opacity: 1;
     transform: translateY(0);

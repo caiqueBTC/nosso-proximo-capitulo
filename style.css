@@ -2725,6 +2725,138 @@ input:focus-visible,
   transform: translateY(0);
 }
 
+/* Citação Poética na Carta */
+.letter-poem-quote {
+  margin: 18px 0 20px;
+  padding: 14px 16px 14px 18px;
+  border-left: 2.5px solid var(--crimson-500);
+  background: linear-gradient(
+    135deg,
+    rgba(181, 18, 43, 0.045) 0%,
+    rgba(224, 196, 138, 0.08) 100%
+  );
+  border-radius: 0 14px 14px 0;
+  font-family: var(--font-letter);
+  font-style: italic;
+  font-size: clamp(1.16rem, 4.3vw, 1.24rem);
+  line-height: 1.72;
+  color: var(--wine-700);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.65);
+}
+
+.poem-line {
+  display: inline-block;
+}
+
+/* Bloco Inteligente de Vídeo Especial na Carta */
+.letter-video-box {
+  margin: 20px 0 14px;
+  padding: 15px 16px;
+  border-radius: 18px;
+  background: linear-gradient(
+    145deg,
+    rgba(255, 251, 245, 0.92) 0%,
+    rgba(244, 211, 217, 0.28) 100%
+  );
+  border: 1px solid rgba(184, 146, 74, 0.42);
+  box-shadow:
+    0 1px 0 rgba(255, 255, 255, 0.8) inset,
+    0 10px 24px -12px rgba(90, 20, 40, 0.16);
+}
+
+.letter-video-intro {
+  font-family: var(--font-letter);
+  font-style: italic;
+  font-size: clamp(1.06rem, 3.9vw, 1.14rem);
+  line-height: 1.52;
+  color: var(--ink-soft);
+  margin: 0 0 12px;
+}
+
+.letter-video-card {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 11px 14px;
+  border-radius: 14px;
+  background: linear-gradient(135deg, var(--crimson-500) 0%, var(--crimson-700) 100%);
+  color: var(--on-dark);
+  text-decoration: none;
+  box-shadow:
+    0 1px 0 rgba(255, 255, 255, 0.22) inset,
+    0 8px 18px -6px rgba(122, 10, 28, 0.45);
+  transition: transform 0.25s var(--ease-spring), box-shadow 0.25s ease, filter 0.25s ease;
+}
+
+.letter-video-card:hover {
+  transform: translateY(-2px);
+  filter: brightness(1.05);
+  box-shadow:
+    0 1px 0 rgba(255, 255, 255, 0.3) inset,
+    0 12px 22px -6px rgba(122, 10, 28, 0.55);
+}
+
+.letter-video-card:active {
+  transform: scale(0.98);
+}
+
+.letter-video-card:focus-visible {
+  outline: 3px solid var(--gold-400);
+  outline-offset: 2px;
+}
+
+.letter-video-play-badge {
+  width: 38px;
+  height: 38px;
+  border-radius: 50%;
+  background: rgba(255, 251, 245, 0.15);
+  border: 1px solid rgba(243, 227, 189, 0.45);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  color: var(--gold-200);
+}
+
+.letter-video-play-svg {
+  width: 22px;
+  height: 22px;
+}
+
+.letter-video-meta {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+  flex: 1;
+}
+
+.letter-video-title {
+  font-family: var(--font-display);
+  font-size: 1rem;
+  font-weight: 600;
+  font-style: italic;
+  color: var(--on-dark);
+  line-height: 1.2;
+}
+
+.letter-video-sub {
+  font-family: var(--font-sans);
+  font-size: 0.74rem;
+  font-weight: 500;
+  color: var(--gold-200);
+  opacity: 0.92;
+  line-height: 1.25;
+}
+
+.letter-video-sparkle {
+  width: 18px;
+  height: 18px;
+  color: var(--gold-200);
+  flex-shrink: 0;
+  opacity: 0.85;
+}
+
 .letter-signature-wrap {
   display: flex;
   align-items: center;

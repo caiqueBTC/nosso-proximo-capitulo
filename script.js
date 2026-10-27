@@ -30,15 +30,34 @@ const CONFIG = {
     assinatura: "Com todo o meu amor, Caique. 💌"
   },
 
-  // Página 2 da Carta (Lorem Ipsum temporário para você substituir depois pelo seu texto)
+  // Página 2 da Carta: Declaração profunda + Poema + Vídeo Especial
   cartaPagina2: {
     saudacao: "Meu amor,",
     paragrafos: [
-      "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Desde que você chegou, cada detalhe dos meus dias ganhou uma cor diferente, uma paz que eu nunca tinha experimentado antes e uma certeza bonita no coração.",
-      "Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris. Aqui entrará o texto especial que estou preparando para você, contando tudo o que passa no meu peito quando olho para o seu sorriso e penso no nosso futuro juntos.",
-      "Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Que a gente continue escrevendo essa história lado a lado, com todo o carinho do mundo."
+      "Eu não sou muito bom com textos longos, mas você merece que eu exprima até aquilo em que não sou tão bom. Mesmo lendo através de uma tela, gostaria que você ouvisse estas palavras usando a minha voz na sua mente. Quero que sinta que estou aí do seu lado, segurando a sua mão, logo depois de dar um beijo na sua testa. Se já está ouvindo a minha voz, podemos seguir em frente.",
+      "Se eu tivesse um desejo concedido por Deus, seria o de ficar bem velhinho ao seu lado, com quantos filhos e netos Ele quisesse nos confiar. Assim, eu poderia repetir até cansar que a minha única dúvida seria saber se o melhor dia da minha vida foi quando comecei a namorar a avó dos meus netos ou o dia em que recebemos o sacramento do matrimônio diante do altar.",
+      "Eu te amo, e não tenho dúvida disso. Uma vez vi que a paixão verdadeira começa muito além da atração física. Ela nasce quando a gente olha para alguém e sente uma luz própria que acalma o coração, uma beleza tão única que faltam palavras para explicar. Se eu fosse usar alguns versos para descrever o encanto que senti ao te ver, diria:",
+      {
+        tipo: "poema",
+        versos: [
+          "“De repente, o mundo inteiro fez silêncio,",
+          "só para eu ouvir a paz que o seu sorriso traz.",
+          "E em um único olhar seu, encontrei a minha casa,",
+          "o meu abrigo e tudo o que eu sempre quis em paz.”"
+        ]
+      },
+      "Eita, como eu te amo. Mas depois desse encanto, existe algo ainda maior que quero construir com você. Não quero ficar preso apenas na fase do enamoramento, aquele sentimento intenso que não sai da mente, mas que ainda traz medos e inseguranças.",
+      "O que quero viver, e já estou começando a viver com você, é o amor genuíno e pleno. Com você eu descobri que amar de verdade é quando o seu bem se torna mais importante e valioso para mim do que a minha própria vida, e que o maior bem que posso te desejar é a vida eterna. Por isso, a minha vocação diária é cuidar de você, perdoar sem medidas, te proteger de toda tristeza e caminhar ao seu lado rumo ao céu, guardando você como o meu bem mais precioso sob o manto de Nossa Senhora, e vamos rezar muitos terços juntos para isso.",
+      "Porque o amor mais forte não é aquele que passa rápido como o instante em que nasceu, mas o que cresce com calma dentro de nós. É uma entrega inteira, onde descobrimos uma paz completa e um futuro sem fim, unindo cada momento da nossa história para que você viva para sempre e o nosso amor penetre na eternidade. É isso que desejo a você."
     ],
-    assinatura: "Para sempre seu, Caique. ❤️"
+    videoEspecial: {
+      introducao:
+        "Achei esse vídeo tão lindo que quis compartilhar com você — ele traduz exatamente esse amor que quero viver ao seu lado:",
+      titulo: "O que é o amor?",
+      subtitulo: "Toque para assistir ao vídeo que me inspirou",
+      url: "https://www.youtube.com/watch?v=NJIErTgr1ZA"
+    },
+    assinatura: "Para sempre seu."
   },
 
   // Página 3 da Carta: Homenagem a Santa Teresinha e a Flor Branca
@@ -748,15 +767,77 @@ function initPersonalization() {
   if (CONFIG.cartaPagina2) {
     el.letterGreetingP2.textContent = CONFIG.cartaPagina2.saudacao;
     el.letterSignatureP2.textContent = CONFIG.cartaPagina2.assinatura;
-    const existingP2 = el.letterContentP2.querySelectorAll(".letter-paragraph");
+    const existingP2 = el.letterContentP2.querySelectorAll(
+      ".letter-paragraph, .letter-poem-quote, .letter-video-box"
+    );
     existingP2.forEach((p) => p.remove());
     const sigWrap2 = el.letterContentP2.querySelector(".letter-signature-wrap");
-    CONFIG.cartaPagina2.paragrafos.forEach((texto) => {
-      const p = document.createElement("p");
-      p.className = "letter-paragraph";
-      p.textContent = texto;
-      el.letterContentP2.insertBefore(p, sigWrap2);
+
+    CONFIG.cartaPagina2.paragrafos.forEach((item, idx) => {
+      if (item && typeof item === "object" && item.tipo === "poema" && Array.isArray(item.versos)) {
+        const quote = document.createElement("blockquote");
+        quote.className = "letter-paragraph letter-poem-quote";
+        item.versos.forEach((verso, vIdx) => {
+          const span = document.createElement("span");
+          span.className = "poem-line";
+          span.textContent = verso;
+          quote.appendChild(span);
+          if (vIdx < item.versos.length - 1) {
+            quote.appendChild(document.createElement("br"));
+          }
+        });
+        el.letterContentP2.insertBefore(quote, sigWrap2);
+      } else {
+        const p = document.createElement("p");
+        p.className = idx === 0 ? "letter-paragraph letter-paragraph-lead" : "letter-paragraph";
+        p.textContent = String(item);
+        el.letterContentP2.insertBefore(p, sigWrap2);
+      }
     });
+
+    if (CONFIG.cartaPagina2.videoEspecial && CONFIG.cartaPagina2.videoEspecial.url) {
+      const vid = CONFIG.cartaPagina2.videoEspecial;
+      const videoBox = document.createElement("div");
+      videoBox.className = "letter-paragraph letter-video-box";
+
+      if (vid.introducao) {
+        const introP = document.createElement("p");
+        introP.className = "letter-video-intro";
+        introP.textContent = vid.introducao;
+        videoBox.appendChild(introP);
+      }
+
+      const link = document.createElement("a");
+      link.href = vid.url;
+      link.target = "_blank";
+      link.rel = "noopener noreferrer";
+      link.className = "letter-video-card";
+      link.setAttribute("aria-label", `${vid.titulo || "O que é o amor?"} — Assistir vídeo no YouTube`);
+
+      link.innerHTML = `
+        <span class="letter-video-play-badge" aria-hidden="true">
+          <svg viewBox="0 0 24 24" class="letter-video-play-svg">
+            <circle cx="12" cy="12" r="10.5" fill="none" stroke="currentColor" stroke-width="1.2" opacity="0.45" />
+            <path d="M9.5 7.5L17 12L9.5 16.5V7.5Z" fill="currentColor" />
+          </svg>
+        </span>
+        <span class="letter-video-meta">
+          <span class="letter-video-title">${vid.titulo || "O que é o amor?"}</span>
+          <span class="letter-video-sub">${vid.subtitulo || "Toque para assistir ao vídeo"}</span>
+        </span>
+        <span class="letter-video-sparkle" aria-hidden="true">
+          <svg viewBox="0 0 24 24"><use href="#sparkle" /></svg>
+        </span>
+      `;
+
+      link.addEventListener("click", () => {
+        soundFX.playKeyTap();
+        soundFX.stopAmbientMelody(300);
+      });
+
+      videoBox.appendChild(link);
+      el.letterContentP2.insertBefore(videoBox, sigWrap2);
+    }
   }
 
   // Página 3: Santa Teresinha (fallback sem carregar 2x + "flor branca" em itálico)
@@ -2240,10 +2321,11 @@ function revealParagraphsInContainer(container) {
   }
 
   paragraphs.forEach((p) => p.classList.remove("revealed"));
+  const staggerMs = paragraphs.length > 4 ? 180 : 320;
   paragraphs.forEach((p, idx) => {
     setTimeout(() => {
       p.classList.add("revealed");
-    }, 120 + idx * 350);
+    }, 100 + idx * staggerMs);
   });
 }
 

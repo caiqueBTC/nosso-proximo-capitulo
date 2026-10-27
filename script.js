@@ -1977,48 +1977,237 @@ function setupAcaiSlider() {
 /* ============================================================================
    ETAPA 5: ENVELOPE 3D REAL + CARTA EM 3 PÁGINAS (Virada 3D e Swipe)
    ============================================================================ */
+function spawnEnvelopeParticles(count = 10) {
+  const anchor = document.getElementById("envelope-particles-anchor") || el.particlesAnchor;
+  if (state.reducedMotion || !anchor) return;
+
+  for (let i = 0; i < count; i++) {
+    const item = document.createElement("div");
+    item.className = "burst-petal-item";
+    const isSparkle = i % 2 === 0;
+    item.innerHTML = isSparkle
+      ? `<svg viewBox="0 0 24 24"><use href="#sparkle" /></svg>`
+      : `<svg viewBox="0 0 28 32"><use href="${i % 4 === 1 ? "#petal-white" : "#petal"}" /></svg>`;
+    anchor.appendChild(item);
+
+    const angle = (-150 + Math.random() * 120) * (Math.PI / 180);
+    const dist = 55 + Math.random() * 75;
+    const tx = Math.cos(angle) * dist;
+    const ty = Math.sin(angle) * dist - 22;
+    const rot = (Math.random() - 0.5) * 240;
+
+    item.animate(
+      [
+        { transform: "translate3d(0,0,0) scale(0.35) rotate(0deg)", opacity: 1 },
+        {
+          transform: `translate3d(${tx.toFixed(1)}px, ${ty.toFixed(1)}px, 0) scale(1.05) rotate(${rot.toFixed(1)}deg)`,
+          opacity: 0.95,
+          offset: 0.62,
+        },
+        {
+          transform: `translate3d(${(tx * 1.18).toFixed(1)}px, ${(ty + 34).toFixed(1)}px, 0) scale(0.55) rotate(${(rot * 1.4).toFixed(1)}deg)`,
+          opacity: 0,
+        },
+      ],
+      { duration: 1050 + Math.random() * 350, easing: "cubic-bezier(0.22, 1, 0.36, 1)" }
+    ).onfinish = () => item.remove();
+  }
+}
+
+function resetEnvelopeElements() {
+  const envSeal = document.getElementById("real-env-seal");
+  const envFlap = document.getElementById("real-env-flap");
+  const envSheet = document.getElementById("real-env-sheet");
+  const envGlow = document.getElementById("real-env-inner-glow");
+  const envCaption = document.getElementById("envelope-stage-caption");
+
+  if (window.gsap) {
+    window.gsap.killTweensOf(
+      [el.realEnvelope, envSeal, envFlap, envSheet, envGlow, envCaption].filter(Boolean)
+    );
+    window.gsap.set(
+      [el.realEnvelope, envSeal, envFlap, envSheet, envGlow, envCaption].filter(Boolean),
+      { clearProps: "all" }
+    );
+  }
+  if (el.realEnvelope) el.realEnvelope.className = "real-envelope";
+  if (envSeal) envSeal.classList.remove("seal-cracked");
+  if (envCaption) envCaption.textContent = "Uma carta selada especialmente para você…";
+}
+
 function openLetterStage() {
   el.giftBoxStage.hidden = true;
   goToStep(el.stepLetter);
 
+  // Foca imediatamente no topo para centralizar o palco do envelope/carta
+  window.scrollTo({ top: 0, behavior: state.reducedMotion ? "auto" : "smooth" });
+
   if (state.reducedMotion || state.envelopeOpenedOnce) {
     if (el.letterEnvelopeStage) el.letterEnvelopeStage.hidden = true;
-    if (el.loveLetterPaper) el.loveLetterPaper.hidden = false;
+    if (el.loveLetterPaper) {
+      el.loveLetterPaper.hidden = false;
+      el.loveLetterPaper.classList.remove("unfolding-paper");
+    }
     goToLetterPage(1, "next");
     return;
   }
 
-  // Sequência de abertura do envelope 3D (~1.8s)
+  // Sequência cinematográfica e prolongada de abertura do envelope 3D (~4.6s)
   state.envelopeOpenedOnce = true;
   if (el.letterEnvelopeStage) el.letterEnvelopeStage.hidden = false;
   if (el.loveLetterPaper) el.loveLetterPaper.hidden = true;
-  if (el.realEnvelope) {
-    el.realEnvelope.className = "real-envelope";
+  resetEnvelopeElements();
+
+  const envSeal = document.getElementById("real-env-seal");
+  const envFlap = document.getElementById("real-env-flap");
+  const envSheet = document.getElementById("real-env-sheet");
+  const envGlow = document.getElementById("real-env-inner-glow");
+  const envCaption = document.getElementById("envelope-stage-caption");
+
+  const revealFullLetterPaper = () => {
+    if (el.letterEnvelopeStage) el.letterEnvelopeStage.hidden = true;
+    if (el.loveLetterPaper) {
+      el.loveLetterPaper.hidden = false;
+      el.loveLetterPaper.classList.remove("unfolding-paper");
+      void el.loveLetterPaper.offsetWidth;
+      el.loveLetterPaper.classList.add("unfolding-paper");
+    }
+    window.scrollTo({ top: 0, behavior: state.reducedMotion ? "auto" : "smooth" });
+    goToLetterPage(1, "next");
+  };
+
+  const gsapInstance = window.gsap;
+  if (!gsapInstance) {
+    // Fallback CSS prolongado (~4.2s) caso o GSAP não esteja disponível
+    setTimeout(() => {
+      soundFX.playWaxCrack();
+      if (envSeal) envSeal.classList.add("seal-cracked");
+      spawnEnvelopeParticles(8);
+    }, 650);
+
+    setTimeout(() => {
+      if (el.realEnvelope) el.realEnvelope.classList.add("env-step-seal");
+    }, 1050);
+
+    setTimeout(() => {
+      if (el.realEnvelope) el.realEnvelope.classList.add("env-step-flap");
+      soundFX.playPageTurn();
+    }, 1750);
+
+    setTimeout(() => {
+      if (el.realEnvelope) el.realEnvelope.classList.add("env-step-sheet");
+      soundFX.playPageTurn();
+      spawnEnvelopeParticles(8);
+    }, 2650);
+
+    setTimeout(() => {
+      if (el.realEnvelope) el.realEnvelope.classList.add("env-step-done");
+    }, 3650);
+
+    setTimeout(revealFullLetterPaper, 4200);
+    return;
   }
 
-  soundFX.playWaxCrack();
-  setTimeout(() => {
-    if (el.realEnvelope) el.realEnvelope.classList.add("env-step-seal");
-  }, 120);
+  const tl = gsapInstance.timeline();
 
-  setTimeout(() => {
-    if (el.realEnvelope) el.realEnvelope.classList.add("env-step-flap");
+  // 0.00s - 0.85s: O envelope entra no centro do palco iluminado e o lacre pulsa
+  tl.fromTo(
+    el.realEnvelope,
+    { opacity: 0, y: 28, scale: 0.9, rotationX: 14 },
+    { opacity: 1, y: 0, scale: 1.04, rotationX: 0, duration: 0.72, ease: "back.out(1.4)" },
+    0
+  );
+  if (envSeal) {
+    tl.to(
+      envSeal,
+      { scale: 1.12, duration: 0.28, yoyo: true, repeat: 1, ease: "sine.inOut" },
+      0.45
+    );
+  }
+
+  // 0.90s - 1.85s: O lacre de cera vermelho trinca, solta faíscas e cai com gravidade
+  tl.add(() => {
+    if (envCaption) envCaption.textContent = "Quebrando o lacre real…";
+    soundFX.playWaxCrack();
+    navigator.vibrate?.([18, 30, 18]);
+    if (envSeal) envSeal.classList.add("seal-cracked");
+    spawnEnvelopeParticles(10);
+  }, 0.92);
+
+  if (envSeal) {
+    tl.to(
+      envSeal,
+      {
+        keyframes: [
+          { x: -3, rotation: -6, duration: 0.06 },
+          { x: 3, rotation: 6, duration: 0.06 },
+          { x: -2, rotation: -4, duration: 0.06 },
+          { x: 0, rotation: 0, duration: 0.06 },
+        ],
+        ease: "sine.inOut",
+      },
+      0.94
+    );
+    tl.to(
+      envSeal,
+      { y: 76, rotation: 28, scale: 0.72, opacity: 0, duration: 0.58, ease: "power2.in" },
+      1.28
+    );
+  }
+
+  // 1.85s - 2.95s: A aba superior 3D se abre lentamente revelando o brilho quente interno
+  tl.add(() => {
+    if (envCaption) envCaption.textContent = "Abrindo o envelope…";
     soundFX.playPageTurn();
-  }, 540);
+  }, 1.88);
 
-  setTimeout(() => {
-    if (el.realEnvelope) el.realEnvelope.classList.add("env-step-sheet");
-  }, 980);
+  if (envFlap) {
+    tl.to(
+      envFlap,
+      {
+        rotationX: 180,
+        duration: 0.92,
+        ease: "power2.inOut",
+        onUpdate: function () {
+          if (this.progress() > 0.5) {
+            envFlap.style.zIndex = "1";
+          }
+        },
+      },
+      1.88
+    );
+  }
+  if (envGlow) {
+    tl.to(envGlow, { opacity: 1, duration: 0.65, ease: "sine.out" }, 2.15);
+  }
+  tl.add(() => {
+    spawnEnvelopeParticles(8);
+  }, 2.45);
 
-  setTimeout(() => {
-    if (el.realEnvelope) el.realEnvelope.classList.add("env-step-done");
-  }, 1450);
+  // 2.85s - 4.15s: A folha de carta marfim desliza suavemente para fora do envelope
+  tl.add(() => {
+    if (envCaption) envCaption.textContent = "Desdobrando a sua carta…";
+    soundFX.playPageTurn();
+    soundFX.playSuccess();
+    spawnEnvelopeParticles(12);
+  }, 2.85);
 
-  setTimeout(() => {
-    if (el.letterEnvelopeStage) el.letterEnvelopeStage.hidden = true;
-    if (el.loveLetterPaper) el.loveLetterPaper.hidden = false;
-    goToLetterPage(1, "next");
-  }, 1800);
+  if (envSheet) {
+    tl.to(
+      envSheet,
+      { y: -122, scale: 1.06, duration: 1.12, ease: "power3.out" },
+      2.85
+    );
+  }
+
+  // 4.10s - 4.60s: O envelope recolhe suavemente e dá lugar ao papel completo da carta
+  tl.to(
+    [el.realEnvelope, envCaption].filter(Boolean),
+    { y: 34, scale: 0.94, opacity: 0, duration: 0.48, ease: "power2.inOut" },
+    4.12
+  );
+
+  tl.add(revealFullLetterPaper, 4.6);
 }
 
 function revealParagraphsInContainer(container) {
@@ -2783,8 +2972,9 @@ function resetExperience() {
     );
   }
 
-  // Reseta Caixa de Porcelana
+  // Reseta Caixa de Porcelana e Envelope 3D
   resetBox();
+  resetEnvelopeElements();
 
   // Reseta Pergunta 1
   if (el.dateInputWrapper) el.dateInputWrapper.classList.remove("sealed");

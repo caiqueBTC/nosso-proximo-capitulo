@@ -788,17 +788,34 @@
 
       <!-- ETAPA 5: CARTA EM 3 PÁGINAS COM ABERTURA DE ENVELOPE 3D E VIRADA DE PÁGINA 3D -->
       <section class="step-card letter-stage-card" id="step-letter" aria-label="Carta de amor para Isabela" hidden>
-        <!-- Envelope 3D Real que abre antes da carta aparecer -->
+        <!-- Envelope 3D Real que abre em palco centralizado antes da carta aparecer -->
         <div class="letter-envelope-stage" id="letter-envelope-stage" aria-hidden="true">
+          <div class="envelope-glow-backdrop"></div>
+          <div class="envelope-particles-anchor" id="envelope-particles-anchor"></div>
+          <p class="envelope-stage-caption" id="envelope-stage-caption">
+            Quebrando o lacre da sua carta…
+          </p>
           <div class="real-envelope" id="real-envelope">
             <div class="real-env-back"></div>
+            <div class="real-env-inner-glow" id="real-env-inner-glow"></div>
             <div class="real-env-sheet" id="real-env-sheet">
+              <div class="real-env-sheet-ornament">
+                <svg viewBox="0 0 160 28"><use href="#ornament-sprig" /></svg>
+              </div>
               <span class="real-env-sheet-line">Para o amor da minha vida,</span>
+              <div class="real-env-sheet-preview-lines">
+                <span></span>
+                <span></span>
+                <span></span>
+              </div>
             </div>
             <div class="real-env-pocket"></div>
             <div class="real-env-flap" id="real-env-flap"></div>
             <div class="real-env-seal" id="real-env-seal">
               <svg viewBox="0 0 96 96"><use href="#wax-seal" /></svg>
+              <svg class="seal-crack-overlay" viewBox="0 0 96 96">
+                <path d="M48 14 L44 38 L54 49 L46 66 L50 82 M22 44 L44 48 L62 40 L76 46" fill="none" stroke="#FFF6F2" stroke-width="2" stroke-linecap="round" />
+              </svg>
             </div>
           </div>
         </div>

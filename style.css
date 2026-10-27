@@ -2359,64 +2359,168 @@ input:focus-visible,
   display: none;
 }
 
-/* Envelope 3D Real que abre ao entrar na etapa da carta */
+/* Envelope 3D Real que abre em palco iluminado ao entrar na etapa da carta */
 .letter-envelope-stage {
+  position: relative;
   width: 100%;
-  min-height: 260px;
+  min-height: clamp(390px, 72dvh, 520px);
   display: flex;
+  flex-direction: column;
   align-items: center;
   justify-content: center;
-  perspective: 1000px;
-  margin: 14px 0;
+  perspective: 1100px;
+  margin: 10px 0 18px;
+}
+
+.envelope-glow-backdrop {
+  position: absolute;
+  width: 340px;
+  height: 340px;
+  border-radius: 50%;
+  background: radial-gradient(
+    circle,
+    rgba(243, 227, 189, 0.44) 0%,
+    rgba(181, 18, 43, 0.3) 48%,
+    rgba(18, 4, 10, 0) 75%
+  );
+  filter: blur(20px);
+  animation: candleHaloPulse 4s ease-in-out infinite;
+  pointer-events: none;
+  z-index: 0;
+}
+
+.envelope-particles-anchor {
+  position: absolute;
+  top: 52%;
+  left: 50%;
+  width: 0;
+  height: 0;
+  z-index: 20;
+  pointer-events: none;
+}
+
+.envelope-stage-caption {
+  position: relative;
+  z-index: 6;
+  font-family: var(--font-letter);
+  font-style: italic;
+  font-size: 1.15rem;
+  color: var(--gold-200);
+  letter-spacing: 0.03em;
+  margin-bottom: 28px;
+  text-shadow: 0 2px 10px rgba(0, 0, 0, 0.65);
+  transition: opacity 0.45s ease, transform 0.45s ease;
 }
 
 .real-envelope {
   position: relative;
-  width: min(100%, 340px);
-  height: 220px;
+  z-index: 4;
+  width: min(100%, 356px);
+  height: 236px;
   transform-style: preserve-3d;
-  transition: transform 0.6s var(--ease-out-expo), opacity 0.5s ease;
+  transition: transform 0.75s var(--ease-out-expo), opacity 0.6s ease;
 }
 
 .real-env-back {
   position: absolute;
   inset: 0;
-  background: var(--porcelain-shade);
-  border-radius: 16px;
+  background: linear-gradient(165deg, #5A1428 0%, #2B0B14 100%);
+  border-radius: 18px;
   border: 1.5px solid var(--gold-400);
-  box-shadow: 0 28px 55px -15px rgba(0, 0, 0, 0.72);
+  box-shadow:
+    0 0 0 1px rgba(243, 227, 189, 0.25) inset,
+    0 32px 64px -14px rgba(0, 0, 0, 0.82);
+}
+
+/* Brilho interno quente que acende quando a aba do envelope se abre */
+.real-env-inner-glow {
+  position: absolute;
+  top: -12px;
+  left: 10%;
+  right: 10%;
+  height: 60px;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(255, 251, 245, 0.9) 0%, rgba(224, 196, 138, 0.55) 48%, transparent 78%);
+  filter: blur(10px);
+  opacity: 0;
+  z-index: 1;
+  pointer-events: none;
+  transition: opacity 0.6s ease;
 }
 
 .real-env-sheet {
   position: absolute;
-  left: 14px;
-  right: 14px;
-  top: 18px;
-  bottom: 18px;
-  background: var(--paper);
-  border-radius: 10px;
-  border: 1px solid var(--gold-400);
-  padding: 22px 18px;
+  left: 16px;
+  right: 16px;
+  top: 16px;
+  bottom: 16px;
+  background-color: var(--paper);
+  background-image:
+    repeating-linear-gradient(180deg, transparent 0px, transparent 25px, rgba(184, 146, 74, 0.14) 25px, rgba(184, 146, 74, 0.14) 26px);
+  border-radius: 12px;
+  border: 1.2px solid var(--gold-400);
+  padding: 16px 20px;
   display: flex;
-  align-items: flex-start;
-  justify-content: center;
-  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.18);
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-start;
+  gap: 8px;
+  box-shadow: 0 10px 26px rgba(0, 0, 0, 0.28);
   z-index: 2;
-  transition: transform 0.65s var(--ease-out-expo);
+  transition: transform 0.85s var(--ease-out-expo);
+}
+
+.real-env-sheet-ornament {
+  width: 96px;
+  height: 16px;
+  opacity: 0.85;
+}
+
+.real-env-sheet-ornament svg {
+  width: 100%;
+  height: 100%;
 }
 
 .real-env-sheet-line {
   font-family: var(--font-script);
-  font-size: 1.65rem;
+  font-size: 1.75rem;
   color: var(--crimson-700);
+  line-height: 1.15;
+}
+
+.real-env-sheet-preview-lines {
+  width: 86%;
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+  margin-top: 4px;
+}
+
+.real-env-sheet-preview-lines span {
+  display: block;
+  height: 2px;
+  border-radius: 99px;
+  background: linear-gradient(90deg, transparent, rgba(106, 58, 70, 0.28), transparent);
+}
+
+.real-env-sheet-preview-lines span:nth-child(2) {
+  width: 78%;
+  margin: 0 auto;
+}
+
+.real-env-sheet-preview-lines span:nth-child(3) {
+  width: 56%;
+  margin: 0 auto;
 }
 
 .real-env-pocket {
   position: absolute;
   inset: 0;
-  background: linear-gradient(180deg, transparent 0%, var(--ivory) 38%, var(--paper) 100%);
+  background:
+    linear-gradient(180deg, transparent 0%, #FBF6EE 36%, #EFE4D4 100%);
   clip-path: polygon(0 0, 50% 54%, 100% 0, 100% 100%, 0 100%);
-  border-radius: 16px;
+  border-radius: 18px;
+  box-shadow: 0 -2px 12px rgba(43, 11, 20, 0.12) inset;
   z-index: 3;
 }
 
@@ -2426,27 +2530,42 @@ input:focus-visible,
   left: 0;
   right: 0;
   height: 62%;
-  background: linear-gradient(180deg, #FFFDF9 0%, var(--porcelain-shade) 100%);
+  background: linear-gradient(180deg, #FFFDF9 0%, #E7DED2 100%);
   clip-path: polygon(0 0, 100% 0, 50% 100%);
   transform-origin: top center;
   z-index: 4;
-  transition: transform 0.6s var(--ease-out-expo);
+  transition: transform 0.85s var(--ease-out-expo);
+  filter: drop-shadow(0 6px 10px rgba(18, 4, 10, 0.22));
 }
 
 .real-env-seal {
   position: absolute;
-  top: 44%;
+  top: 46%;
   left: 50%;
-  width: 62px;
-  height: 62px;
+  width: 68px;
+  height: 68px;
   transform: translate(-50%, -50%);
   z-index: 5;
-  filter: drop-shadow(0 6px 12px rgba(43, 11, 20, 0.4));
-  transition: transform 0.48s ease, opacity 0.45s ease;
+  filter: drop-shadow(0 8px 16px rgba(43, 11, 20, 0.5));
+  transition: transform 0.6s ease, opacity 0.55s ease;
+}
+
+.seal-crack-overlay {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.2s ease;
+}
+
+.real-env-seal.seal-cracked .seal-crack-overlay {
+  opacity: 0.92;
 }
 
 .real-envelope.env-step-seal .real-env-seal {
-  transform: translate(-50%, 45px) rotate(24deg) scale(0.75);
+  transform: translate(-50%, 58px) rotate(28deg) scale(0.72);
   opacity: 0;
 }
 
@@ -2455,13 +2574,17 @@ input:focus-visible,
   z-index: 1;
 }
 
+.real-envelope.env-step-flap .real-env-inner-glow {
+  opacity: 1;
+}
+
 .real-envelope.env-step-sheet .real-env-sheet {
-  transform: translateY(-88px) scale(1.03);
+  transform: translateY(-116px) scale(1.05);
 }
 
 .real-envelope.env-step-done {
   opacity: 0;
-  transform: translateY(36px) scale(0.92);
+  transform: translateY(42px) scale(0.92);
 }
 
 /* Papel de Carta de Luxo (--paper, linhas pautadas, margem esquerda vermelha) */
@@ -2481,6 +2604,21 @@ input:focus-visible,
     0 32px 64px -18px rgba(0, 0, 0, 0.72);
   perspective: 1400px;
   overflow: hidden;
+}
+
+.love-letter-paper.unfolding-paper {
+  animation: letterUnfoldReveal 0.82s var(--ease-out-expo) forwards;
+}
+
+@keyframes letterUnfoldReveal {
+  0% {
+    opacity: 0;
+    transform: perspective(1200px) translateY(28px) rotateX(-14deg) scale(0.94);
+  }
+  100% {
+    opacity: 1;
+    transform: perspective(1200px) translateY(0) rotateX(0deg) scale(1);
+  }
 }
 
 .letter-top-bar {

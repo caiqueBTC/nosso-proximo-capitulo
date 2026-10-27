@@ -63,7 +63,7 @@ const CONFIG = {
     agradecimento:
       "Obrigado por tudo, meu amor. Obrigado por cada sorriso, pelo seu carinho, pela sua compreensão, pela sua companhia e por fazer dos meus dias os mais felizes desde que começamos a nossa história.",
     promessa:
-      "Agora essa caixa guarda uma promessa: a nossa caminhada ainda tem muitos momentos bonitos pela frente.",
+      "Agora essa caixa digital guarda uma promessa: a nossa caminhada ainda tem muitos momentos bonitos pela frente.",
     declaracao:
       "Eu te amo, Isabela. Hoje, amanhã e em todos os próximos capítulos. ❤️"
   },

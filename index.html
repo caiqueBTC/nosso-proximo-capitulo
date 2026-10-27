@@ -1,0 +1,505 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <meta name="theme-color" content="#260712" />
+  <meta name="description" content="Uma surpresa especial para Isabela 💌" />
+  <title>Uma surpresa para Isabela 💌</title>
+
+  <!-- Google Fonts: Romantic calligraphy/serif for titles + clean legible sans-serif for body/buttons -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,600;0,700;1,600&family=Great+Vibes&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet" />
+
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <!-- Fundo com partículas discretas e pétalas suaves -->
+  <div id="ambient-particles" class="ambient-particles" aria-hidden="true"></div>
+  <div id="celebration-layer" class="celebration-layer" aria-hidden="true"></div>
+
+  <!-- Invólucro principal Mobile-First -->
+  <div class="app-shell">
+    <!-- Cabeçalho: 3 Cadeados de Progresso + Botão de Som -->
+    <header class="top-bar">
+      <div class="locks-progress" id="locks-progress" aria-label="Progresso de desbloqueio: 0 de 3 cadeados abertos">
+        <div class="lock-step" id="lock-indicator-1" data-unlocked="false">
+          <div class="lock-icon-wrap">
+            <svg class="lock-svg" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+              <path class="shackle" d="M7 10V7a5 5 0 0 1 10 0v3" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+              <rect class="body" x="5" y="10" width="14" height="11" rx="3" fill="currentColor" fill-opacity="0.2" stroke="currentColor" stroke-width="2"/>
+              <circle class="keyhole" cx="12" cy="15.5" r="1.5" fill="currentColor"/>
+            </svg>
+          </div>
+          <span class="lock-label">1</span>
+        </div>
+
+        <div class="lock-connector" id="lock-conn-1"></div>
+
+        <div class="lock-step" id="lock-indicator-2" data-unlocked="false">
+          <div class="lock-icon-wrap">
+            <svg class="lock-svg" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+              <path class="shackle" d="M7 10V7a5 5 0 0 1 10 0v3" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+              <rect class="body" x="5" y="10" width="14" height="11" rx="3" fill="currentColor" fill-opacity="0.2" stroke="currentColor" stroke-width="2"/>
+              <circle class="keyhole" cx="12" cy="15.5" r="1.5" fill="currentColor"/>
+            </svg>
+          </div>
+          <span class="lock-label">2</span>
+        </div>
+
+        <div class="lock-connector" id="lock-conn-2"></div>
+
+        <div class="lock-step" id="lock-indicator-3" data-unlocked="false">
+          <div class="lock-icon-wrap">
+            <svg class="lock-svg" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+              <path class="shackle" d="M7 10V7a5 5 0 0 1 10 0v3" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+              <rect class="body" x="5" y="10" width="14" height="11" rx="3" fill="currentColor" fill-opacity="0.2" stroke="currentColor" stroke-width="2"/>
+              <circle class="keyhole" cx="12" cy="15.5" r="1.5" fill="currentColor"/>
+            </svg>
+          </div>
+          <span class="lock-label">3</span>
+        </div>
+      </div>
+
+      <!-- Controle de som e música (ativado por padrão) -->
+      <button type="button" id="audio-toggle" class="audio-toggle" aria-pressed="true" aria-label="Silenciar trilha sonora">
+        <span class="audio-icon" id="audio-icon" aria-hidden="true">🎵</span>
+        <span class="audio-text" id="audio-text">Música</span>
+      </button>
+    </header>
+
+    <main class="main-stage">
+      <!-- Palco da Caixa de Presente Misteriosa -->
+      <section class="gift-box-stage" id="gift-box-stage" aria-label="Caixa de presente misteriosa">
+        <div class="gift-halo" id="gift-halo"></div>
+        <div class="box-burst-container" id="box-burst-container" aria-hidden="true"></div>
+
+        <div class="gift-box-wrapper" id="gift-box-wrapper">
+          <div class="gift-box" id="gift-box">
+            <!-- Tampa da caixa + Laço de fita -->
+            <div class="box-lid" id="box-lid">
+              <div class="box-bow" id="box-bow">
+                <div class="bow-loop bow-loop-left"></div>
+                <div class="bow-loop bow-loop-right"></div>
+                <div class="bow-tail bow-tail-left"></div>
+                <div class="bow-tail bow-tail-right"></div>
+                <div class="bow-knot"></div>
+              </div>
+              <div class="lid-ribbon-v"></div>
+              <div class="lid-gold-trim"></div>
+            </div>
+
+            <!-- Brilho interno que surge quando a tampa abre -->
+            <div class="box-inner-light" id="box-inner-light"></div>
+
+            <!-- Corpo da caixa -->
+            <div class="box-body" id="box-body">
+              <div class="box-ribbon-v" id="box-ribbon-v"></div>
+              <div class="box-ribbon-h" id="box-ribbon-h"></div>
+
+              <!-- Cadeado Dourado Central -->
+              <div class="central-padlock" id="central-padlock">
+                <svg viewBox="0 0 64 78" width="52" height="64" aria-hidden="true">
+                  <defs>
+                    <linearGradient id="padlockGold" x1="0%" y1="0%" x2="100%" y2="100%">
+                      <stop offset="0%" stop-color="#fff2bd" />
+                      <stop offset="40%" stop-color="#e5c158" />
+                      <stop offset="75%" stop-color="#b88917" />
+                      <stop offset="100%" stop-color="#f3d98b" />
+                    </linearGradient>
+                    <linearGradient id="shackleGold" x1="0%" y1="0%" x2="100%" y2="0%">
+                      <stop offset="0%" stop-color="#c99e32" />
+                      <stop offset="50%" stop-color="#fff2bd" />
+                      <stop offset="100%" stop-color="#9e7411" />
+                    </linearGradient>
+                  </defs>
+                  <path class="central-shackle" id="central-shackle" d="M18 32 V19 C18 10 24 5 32 5 C40 5 46 10 46 19 V32" fill="none" stroke="url(#shackleGold)" stroke-width="6.5" stroke-linecap="round" />
+                  <rect x="8" y="29" width="48" height="40" rx="10" fill="url(#padlockGold)" stroke="#fff6d6" stroke-width="1.5" />
+                  <rect x="12" y="33" width="40" height="32" rx="7" fill="none" stroke="#8c640a" stroke-width="1" stroke-opacity="0.45" />
+                  <!-- Fechadura em formato de coração -->
+                  <path d="M32 45 C32 42.5 29 41 27.5 42.8 C26 44.5 28 47.5 32 50.5 C36 47.5 38 44.5 36.5 42.8 C35 41 32 42.5 32 45 Z" fill="#3b0d1e" />
+                  <path d="M30.5 49 L29 57 H35 L33.5 49 Z" fill="#3b0d1e" />
+                </svg>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ==========================================
+           ETAPA 0: TELA INICIAL
+      =========================================== -->
+      <section class="card-panel step-panel active" id="step-intro" aria-labelledby="intro-title">
+        <div class="panel-ornament" aria-hidden="true">✦ 💌 ✦</div>
+        <h1 class="romantic-title" id="intro-title">Uma surpresa para Isabela 💌</h1>
+        <p class="lead-text">
+          Existe algo muito especial dentro desta caixa, mas ela só abre para a pessoa certa.
+        </p>
+        <p class="highlight-instruction">
+          <strong>Acerte três perguntas para desbloquear o conteúdo.</strong>
+        </p>
+        <button type="button" class="btn btn-primary btn-glow" id="btn-start">
+          <span>Começar a desbloquear</span>
+          <span class="btn-icon" aria-hidden="true">✨</span>
+        </button>
+      </section>
+
+      <!-- ==========================================
+           ETAPA 1: PRIMEIRA PERGUNTA (DATA)
+      =========================================== -->
+      <section class="card-panel step-panel" id="step-q1" aria-labelledby="q1-title" hidden>
+        <span class="step-badge">Pergunta 1 de 3 • O início de tudo</span>
+        <h2 class="question-title" id="q1-title">Que dia começamos a namorar?</h2>
+        <p class="question-subtitle">Digite a data especial no formato abaixo:</p>
+
+        <form id="form-q1" class="question-form" novalidate>
+          <div class="date-input-group">
+            <label for="input-date" class="sr-only">Data em que começamos a namorar (DD/MM/AAAA)</label>
+            <input
+              type="text"
+              id="input-date"
+              class="input-field input-date"
+              inputmode="numeric"
+              autocomplete="off"
+              placeholder="DD / MM / AAAA"
+              maxlength="14"
+              required
+            />
+          </div>
+          <button type="submit" class="btn btn-primary" id="btn-submit-q1">
+            <span>Verificar data</span>
+            <span class="btn-icon" aria-hidden="true">🔓</span>
+          </button>
+        </form>
+
+        <!-- Área de retorno da Pergunta 1 -->
+        <div id="feedback-q1" class="feedback-box" role="status" aria-live="polite" hidden></div>
+      </section>
+
+      <!-- ==========================================
+           ETAPA 2: SEGUNDA PERGUNTA (SANTO)
+      =========================================== -->
+      <section class="card-panel step-panel" id="step-q2" aria-labelledby="q2-title" hidden>
+        <span class="step-badge">Pergunta 2 de 3 • A intercessão</span>
+        <h2 class="question-title" id="q2-title">A qual santo pedimos intercessão para namorar?</h2>
+
+        <div class="options-list" role="group" aria-labelledby="q2-title">
+          <button type="button" class="option-btn" data-option="a">
+            <span class="option-letter">a)</span>
+            <span class="option-text">Santo Agostinho</span>
+          </button>
+
+          <button type="button" class="option-btn" data-option="b">
+            <span class="option-letter">b)</span>
+            <span class="option-text">São Paulo <em>(vamos tricoloooor!)</em></span>
+          </button>
+
+          <button type="button" class="option-btn" data-option="c">
+            <span class="option-letter">c)</span>
+            <span class="option-text">Santa Teresinha do Menino Jesus 🌹</span>
+          </button>
+
+          <button type="button" class="option-btn" data-option="d">
+            <span class="option-letter">d)</span>
+            <span class="option-text">São Domingos de Gusmão 📿</span>
+          </button>
+        </div>
+
+        <!-- Área de retorno da Pergunta 2 -->
+        <div id="feedback-q2" class="feedback-box" role="status" aria-live="polite" hidden></div>
+      </section>
+
+      <!-- ==========================================
+           ETAPA 3: TERCEIRA PERGUNTA (IDENTIDADE)
+      =========================================== -->
+      <section class="card-panel step-panel" id="step-q3" aria-labelledby="q3-title" hidden>
+        <span class="step-badge">Pergunta 3 de 3 • Identidade secreta</span>
+        <h2 class="question-title" id="q3-title">Quem é você?</h2>
+        <p class="question-subtitle">Responda com sinceridade para o último cadeado:</p>
+
+        <form id="form-q3" class="question-form" novalidate>
+          <label for="input-identity" class="sr-only">Quem é você?</label>
+          <input
+            type="text"
+            id="input-identity"
+            class="input-field"
+            autocomplete="off"
+            placeholder="Digite aqui quem é você..."
+            required
+          />
+          <button type="submit" class="btn btn-primary" id="btn-submit-q3">
+            <span>Responder</span>
+            <span class="btn-icon" aria-hidden="true">💘</span>
+          </button>
+        </form>
+
+        <!-- Área de retorno da Pergunta 3 -->
+        <div id="feedback-q3" class="feedback-box" role="status" aria-live="polite" hidden></div>
+      </section>
+
+      <!-- ==========================================
+           ETAPA 4: CAIXA DESBLOQUEADA + POLAROID + AÇAÍ
+      =========================================== -->
+      <section class="card-panel step-panel unlocked-panel" id="step-unlocked" aria-labelledby="unlocked-title" hidden>
+        <div class="unlocked-header">
+          <span class="unlocked-sparkle" aria-hidden="true">✨🔓✨</span>
+          <h2 class="romantic-title unlocked-title" id="unlocked-title">Caixa desbloqueada!</h2>
+          <p class="unlocked-subtitle">
+            <strong>Conteúdo liberado somente para o amor da vida do Caique. 💖</strong>
+          </p>
+        </div>
+
+        <!-- Moldura estilo Polaroid com foto do casal -->
+        <div class="polaroid-wrapper">
+          <div class="polaroid-card">
+            <div class="polaroid-tape" aria-hidden="true"></div>
+            <div class="polaroid-photo-frame">
+              <img
+                id="couple-photo"
+                class="polaroid-img"
+                src="assets/foto-casal-placeholder.svg"
+                alt="Foto de Isabela e Caique"
+              />
+            </div>
+            <p class="polaroid-caption" id="polaroid-caption">
+              O meu lugar favorito no mundo é ao seu lado ❤️
+            </p>
+          </div>
+        </div>
+
+        <!-- Interação do Açaí (Trilha horizontal com detalhes em lilás e roxo) -->
+        <div class="acai-interaction-card" id="acai-card">
+          <p class="acai-instruction" id="acai-instruction">
+            <strong>Arraste o açaí para o lado para abrir a próxima surpresa.</strong>
+          </p>
+
+          <div class="acai-slider-track" id="acai-track" role="slider" aria-labelledby="acai-instruction" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0" tabindex="0">
+            <div class="acai-slider-fill" id="acai-fill"></div>
+            <div class="acai-track-hint" aria-hidden="true">
+              <span>Deslize ou toque</span>
+              <span class="acai-arrows">» » »</span>
+            </div>
+            <div class="acai-track-end" aria-hidden="true">💌</div>
+
+            <!-- Tigela de Açaí arrastável e clicável -->
+            <button type="button" class="acai-handle" id="acai-handle" aria-label="Tigela de açaí: arraste para a direita ou toque para abrir a próxima surpresa">
+              <span class="acai-emoji" aria-hidden="true">🥣💜</span>
+            </button>
+          </div>
+
+          <button type="button" class="acai-tap-alternative" id="acai-tap-btn">
+            Prefere não arrastar? Toque aqui no açaí 💜
+          </button>
+        </div>
+      </section>
+
+      <!-- ==========================================
+           ETAPA 5: A CARTA EM 3 PÁGINAS (COM VIRADA DE PÁGINA)
+      =========================================== -->
+      <section class="step-panel letter-stage-panel" id="step-letter" aria-labelledby="letter-heading" hidden>
+        <div class="envelope-scene" id="envelope-scene">
+          <div class="envelope-Visual" id="envelope-visual">
+            <div class="envelope-back"></div>
+            <div class="envelope-flap" id="envelope-flap"></div>
+            <div class="envelope-pocket"></div>
+            <div class="envelope-seal" id="envelope-seal" aria-hidden="true">💌</div>
+          </div>
+
+          <!-- Folha da Carta de Amor Paginada -->
+          <article class="love-letter-paper" id="love-letter-paper" aria-label="Carta de amor do Caique para Isabela">
+            <div class="letter-header-bar">
+              <div class="letter-top-ornament" aria-hidden="true">❦</div>
+              <span class="letter-page-badge" id="letter-page-badge">Página 1 de 3</span>
+            </div>
+            <h2 class="sr-only" id="letter-heading">Carta para Isabela</h2>
+
+            <!-- PÁGINA 1: Texto original mantido -->
+            <div class="letter-page active-page" id="letter-page-1" data-page="1">
+              <div class="letter-content" id="letter-content-p1">
+                <!-- Preenchido via CONFIG.cartaPagina1 -->
+              </div>
+
+              <div class="page-turn-footer">
+                <p class="page-turn-hint">✨ Há mais uma página esperando por você...</p>
+                <button type="button" class="btn btn-page-turn" id="btn-to-page-2">
+                  <span>Virar a página</span>
+                  <span aria-hidden="true">📖 →</span>
+                </button>
+              </div>
+
+              <!-- Dobra interativa no canto da folha -->
+              <button type="button" class="page-corner-curl" id="curl-to-page-2" aria-label="Virar para a página 2" title="Virar a página"></button>
+            </div>
+
+            <!-- PÁGINA 2: Texto que o Caique vai enviar (Lorem Ipsum temporário) -->
+            <div class="letter-page" id="letter-page-2" data-page="2" hidden>
+              <div class="letter-content" id="letter-content-p2">
+                <!-- Preenchido via CONFIG.cartaPagina2 -->
+              </div>
+
+              <div class="page-turn-footer">
+                <p class="page-turn-hint">🤍 Vire mais uma página para ver um sinal especial...</p>
+                <div class="page-nav-row">
+                  <button type="button" class="btn btn-page-back" id="btn-back-page-1">
+                    <span>← Voltar</span>
+                  </button>
+                  <button type="button" class="btn btn-page-turn" id="btn-to-page-3">
+                    <span>Virar a página</span>
+                    <span aria-hidden="true">🌹 →</span>
+                  </button>
+                </div>
+              </div>
+
+              <button type="button" class="page-corner-curl" id="curl-to-page-3" aria-label="Virar para a página 3" title="Virar a página"></button>
+            </div>
+
+            <!-- PÁGINA 3: Santa Teresinha Cartoon entregando Rosa Branca + Flores Brancas -->
+            <div class="letter-page teresinha-page" id="letter-page-3" data-page="3" hidden>
+              <div class="white-flowers-stage">
+                <!-- Flores brancas variadas ao redor -->
+                <div class="white-flowers-ring" aria-hidden="true">
+                  <span class="wf-item wf-1">🤍</span>
+                  <span class="wf-item wf-2">🌼</span>
+                  <span class="wf-item wf-3">❀</span>
+                  <span class="wf-item wf-4">❁</span>
+                  <span class="wf-item wf-5">🌼</span>
+                  <span class="wf-item wf-6">🤍</span>
+                  <span class="wf-item wf-7">❀</span>
+                  <span class="wf-item wf-8">❁</span>
+                </div>
+
+                <div class="teresinha-illustration-frame">
+                  <img
+                    id="teresinha-img"
+                    class="teresinha-img"
+                    src="assets/santa-teresinha-cartoon.png"
+                    alt="Santa Teresinha do Menino Jesus em versão cartoon entregando uma rosa branca cercada de flores brancas"
+                  />
+                </div>
+              </div>
+
+              <div class="teresinha-text-box" id="teresinha-text-box">
+                <!-- Preenchido via CONFIG.santaTeresinha -->
+              </div>
+
+              <div class="page-turn-footer">
+                <div class="page-nav-row">
+                  <button type="button" class="btn btn-page-back" id="btn-back-page-2">
+                    <span>← Voltar</span>
+                  </button>
+                  <button type="button" class="btn btn-primary" id="btn-to-scratch">
+                    <span>Próxima página</span>
+                    <span aria-hidden="true">✨ →</span>
+                  </button>
+                </div>
+              </div>
+            </div>
+          </article>
+        </div>
+      </section>
+
+      <!-- ==========================================
+           ETAPA 6: ELOGIOS + RASPADINHA DO AÇAÍ + AGRADECIMENTO FINAL
+      =========================================== -->
+      <section class="step-panel scratch-stage-panel" id="step-scratch" aria-labelledby="compliments-heading" hidden>
+        <!-- Card de Elogios -->
+        <div class="card-panel compliments-card">
+          <div class="panel-ornament" aria-hidden="true">✦ 🥰 ✦</div>
+          <h2 class="romantic-title compliments-title" id="compliments-heading">
+            Para a melhor namorada do mundo
+          </h2>
+          <p class="compliments-text" id="compliments-main-text">
+            Obrigado por ser uma namorada linda, incrível, atenciosa, amorosa, compreensiva, divertida, esperta…
+          </p>
+          <p class="compliments-joke" id="compliments-joke-text">
+            <em>(Vou parar por aqui, pois não caberiam milhões de elogios nem em todo o mundo digital! 😂💘)</em>
+          </p>
+          <p class="scratch-instruction" id="scratch-instruction">
+            <strong>Raspe o cartão dourado abaixo com o dedo para revelar o próximo capítulo:</strong>
+          </p>
+        </div>
+
+        <!-- Seção da Raspadinha cobrindo o Cupom do Açaí -->
+        <div class="coupon-section" id="coupon-section">
+          <div class="coupon-Divider" aria-hidden="true">
+            <span>✦ O PRÓXIMO CAPÍTULO ✦</span>
+          </div>
+
+          <div class="scratch-card-wrapper" id="scratch-card-wrapper">
+            <!-- Cupom Digital por baixo da raspadinha -->
+            <div class="digital-coupon" id="digital-coupon">
+              <div class="coupon-notch coupon-notch-left" aria-hidden="true"></div>
+              <div class="coupon-notch coupon-notch-right" aria-hidden="true"></div>
+
+              <div class="coupon-inner">
+                <div class="coupon-header">
+                  <span class="coupon-tag">VALE ESPECIAL • EDIÇÃO EXCLUSIVA</span>
+                  <h3 class="coupon-title">CUPOM ISA &amp; CAIQUE</h3>
+                </div>
+
+                <div class="coupon-body">
+                  <p class="coupon-main-offer">
+                    <strong>Vale um açaí acompanhado e um encontro comigo 💜</strong>
+                  </p>
+                  <div class="coupon-details">
+                    <p><strong>Validade:</strong> enquanto você continuar sendo o amor da minha vida.</p>
+                    <p><strong>Condições:</strong> precisa ir comigo. Não aceito substituta.</p>
+                  </div>
+                </div>
+
+                <div class="coupon-stamp" id="coupon-stamp" aria-hidden="true" hidden>
+                  ENCONTRO CONFIRMADO 💖
+                </div>
+
+                <div class="coupon-actions" id="coupon-actions">
+                  <button type="button" class="btn btn-acai-accept" id="btn-accept-date" disabled>
+                    <span>Aceitar este encontro 💘</span>
+                  </button>
+                </div>
+              </div>
+            </div>
+
+            <!-- Camada de Raspadinha Dourada sobre o Cupom -->
+            <canvas
+              id="scratch-canvas"
+              class="scratch-canvas"
+              aria-label="Raspadinha surpresa: arraste o dedo para raspar e revelar o cupom do açaí"
+            ></canvas>
+          </div>
+
+          <button type="button" class="acai-tap-alternative scratch-tap-btn" id="btn-reveal-scratch">
+            Prefere não raspar? Toque aqui para revelar o prêmio ✨
+          </button>
+
+          <!-- Mensagem Final com Agradecimento por tudo após aceitar o encontro -->
+          <div class="final-promise-card" id="final-promise-card" role="status" aria-live="polite" hidden>
+            <div class="final-heart-badge" aria-hidden="true">💖</div>
+            <h3 class="romantic-title final-title" id="final-title">Encontro aceito!</h3>
+            <p class="final-text" id="final-thankyou-text">
+              Obrigado por tudo, meu amor. Obrigado por cada sorriso, pelo seu carinho, pela sua companhia e por fazer dos meus dias os mais felizes desde que você entrou na minha vida.
+            </p>
+            <p class="final-text" id="final-promise-text">
+              Agora essa caixa guarda uma promessa: a nossa história ainda tem muitos momentos bonitos pela frente.
+            </p>
+            <p class="final-declaration" id="final-declaration-text">
+              <strong>Eu te amo, Isabela. Hoje, amanhã e em todos os próximos capítulos. ❤️</strong>
+            </p>
+
+            <div class="final-footer-buttons">
+              <button type="button" class="btn btn-ghost" id="btn-read-again">
+                📜 Ler a carta novamente
+              </button>
+              <button type="button" class="btn btn-ghost" id="btn-restart">
+                🔄 Voltar ao começo
+              </button>
+            </div>
+          </div>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <script src="script.js"></script>
+</body>
+</html>

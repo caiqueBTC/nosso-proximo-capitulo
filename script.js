@@ -41,8 +41,8 @@ const CONFIG = {
     imagemReservaUrl: "assets/santa-teresinha-cartoon.svg",
     titulo: "A flor branca que você pediu a Santa Teresinha 🤍✨",
     paragrafos: [
-      "Você me contou que rezou para ela pedindo uma flor branca — sem exigir que fosse rosa ou qualquer outra —, apenas como um sinal no seu coração de que o nosso relacionamento era da vontade de Deus.",
-      "Pois aqui está ela, meu bem. Que essa flor branca floresça para confirmar aquilo que sinto todos os dias: o nosso amor é plano de Deus, e você é a resposta mais linda que Ele colocou na minha vida."
+      "Você me contou que rezou para ela pedindo uma flor branca — sem exigir que fosse rosa ou qualquer outra —, apenas como um sinal no seu coração de que o nosso relacionamento era da vontade de Deus. E logo no comecinho da novena, você já recebeu a sua florzinha! 🥹🤍",
+      "A florzinha branca real você já ganhou… então agora toma essa chuva de florzinhas brancas digitais, só para te lembrar todos os dias: o nosso amor é plano de Deus, e você é a resposta mais linda que Ele colocou na minha vida."
     ]
   },
 

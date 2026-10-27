@@ -127,7 +127,7 @@ const state = {
   scratchStrokes: 0,
   scratchTotalDistance: 0,
   dateAccepted: false,
-  audioEnabled: sessionStorage.getItem(STORAGE_AUDIO_KEY) !== "false",
+  audioEnabled: true,
   reducedMotion: window.matchMedia("(prefers-reduced-motion: reduce)").matches,
   pageVisible: document.visibilityState !== "hidden",
   preloadedHeavyAssets: false,
@@ -307,23 +307,23 @@ class RomanticAudioEngine {
 
       // Master Gain
       this.masterGain = this.ctx.createGain();
-      this.masterGain.gain.setValueAtTime(1, this.ctx.currentTime);
+      this.masterGain.gain.setValueAtTime(1.0, this.ctx.currentTime);
       this.masterGain.connect(this.ctx.destination);
 
-      // Filtro Lowpass suave a 3.5kHz para calor analógico
+      // Filtro Lowpass suave a 4.2kHz para calor analógico mantendo brilho
       this.filterNode = this.ctx.createBiquadFilter();
       this.filterNode.type = "lowpass";
-      this.filterNode.frequency.setValueAtTime(3500, this.ctx.currentTime);
+      this.filterNode.frequency.setValueAtTime(4200, this.ctx.currentTime);
       this.filterNode.Q.setValueAtTime(0.7, this.ctx.currentTime);
 
       // Reverb via ConvolverNode com Impulse Response sintético de 2.4s
       this.reverbNode = this.createSyntheticReverb(2.4, 2.2);
 
-      // Dry + Wet mix
+      // Dry + Wet mix mais encorpado para alto-falantes de celular e fones
       const dryGain = this.ctx.createGain();
       const wetGain = this.ctx.createGain();
-      dryGain.gain.setValueAtTime(0.72, this.ctx.currentTime);
-      wetGain.gain.setValueAtTime(0.38, this.ctx.currentTime);
+      dryGain.gain.setValueAtTime(0.9, this.ctx.currentTime);
+      wetGain.gain.setValueAtTime(0.46, this.ctx.currentTime);
 
       this.filterNode.connect(dryGain);
       dryGain.connect(this.masterGain);
@@ -336,19 +336,33 @@ class RomanticAudioEngine {
 
       // Canal de Música
       this.musicGain = this.ctx.createGain();
+      this.musicGain.gain.value = 0.0001;
       this.musicGain.gain.setValueAtTime(0.0001, this.ctx.currentTime);
       this.musicGain.connect(this.filterNode);
 
       // Canal de Efeitos Sonoros (SFX)
       this.sfxGain = this.ctx.createGain();
-      this.sfxGain.gain.setValueAtTime(0.9, this.ctx.currentTime);
+      this.sfxGain.gain.setValueAtTime(1.0, this.ctx.currentTime);
       this.sfxGain.connect(this.filterNode);
     }
 
-    if (this.ctx && this.ctx.state === "suspended") {
+    this.unlockAudioHardware();
+    return this.ctx;
+  }
+
+  // Ritual universal de desbloqueio imediato para iOS Safari / Android Chrome / Desktop
+  unlockAudioHardware() {
+    if (!this.ctx) return;
+    if (this.ctx.state === "suspended" || this.ctx.state === "interrupted") {
       this.ctx.resume().catch(() => {});
     }
-    return this.ctx;
+    try {
+      const silentBuffer = this.ctx.createBuffer(1, 1, 22050);
+      const source = this.ctx.createBufferSource();
+      source.buffer = silentBuffer;
+      source.connect(this.ctx.destination);
+      source.start(0);
+    } catch (_) {}
   }
 
   createSyntheticReverb(durationSec = 2.4, decay = 2.2) {
@@ -382,35 +396,41 @@ class RomanticAudioEngine {
     try {
       const res = await fetch(CONFIG.musica.arquivo, { method: "HEAD" });
       const contentType = res.headers.get("content-type") || "";
-      this.mp3Available = res.ok && (contentType.includes("audio") || contentType.includes("mpeg") || contentType.includes("octet-stream"));
+      this.mp3Available =
+        res.ok &&
+        (contentType.includes("audio") ||
+          contentType.includes("mpeg") ||
+          contentType.includes("octet-stream"));
     } catch {
       this.mp3Available = false;
     }
     return this.mp3Available;
   }
 
-  async startAmbientMelody() {
+  startAmbientMelody() {
     if (!state.audioEnabled || !state.pageVisible) return;
     const ctx = this.initContext();
     if (!ctx) return;
 
-    const fadeSec = ((CONFIG.musica && CONFIG.musica.fadeInMs) || 2500) / 1000;
     const targetVol = this.usingExternalMp3
-      ? (CONFIG.musica && CONFIG.musica.volume) || 0.32
-      : 0.18;
+      ? (CONFIG.musica && CONFIG.musica.volume) || 0.45
+      : 0.56;
 
     const now = ctx.currentTime;
     this.musicGain.gain.cancelScheduledValues(now);
-    this.musicGain.gain.setValueAtTime(Math.max(0.0001, this.musicGain.gain.value), now);
-    this.musicGain.gain.linearRampToValueAtTime(targetVol, now + fadeSec);
+    const startVal = Math.max(0.22, this.musicGain.gain.value);
+    this.musicGain.gain.setValueAtTime(startVal, now);
+    this.musicGain.gain.linearRampToValueAtTime(targetVol, now + 0.9);
 
-    if (this.isPlayingMusic) return;
+    if (this.isPlayingMusic && this.arpeggioTimer) return;
     this.isPlayingMusic = true;
 
-    const hasMp3 = await this.checkMp3Availability();
-    if (!state.audioEnabled || !this.isPlayingMusic) return;
+    // Inicia IMEDIATAMENTE de forma síncrona dentro do gesto do usuário (sem bloquear em fetch!)
+    this.startMusicBoxGenerator();
 
-    if (hasMp3 && el.bgMusicAudio) {
+    // Verifica MP3 externo de forma assíncrona em background apenas se existir no servidor
+    this.checkMp3Availability().then(async (hasMp3) => {
+      if (!hasMp3 || !state.audioEnabled || !this.isPlayingMusic || !el.bgMusicAudio) return;
       try {
         if (!this.mediaElementSource) {
           el.bgMusicAudio.src = CONFIG.musica.arquivo;
@@ -419,16 +439,14 @@ class RomanticAudioEngine {
         }
         await el.bgMusicAudio.play();
         this.usingExternalMp3 = true;
-        const mp3Vol = (CONFIG.musica && CONFIG.musica.volume) || 0.32;
-        this.musicGain.gain.linearRampToValueAtTime(mp3Vol, ctx.currentTime + fadeSec);
-        return;
+        if (this.arpeggioTimer) {
+          clearInterval(this.arpeggioTimer);
+          this.arpeggioTimer = null;
+        }
       } catch {
         this.usingExternalMp3 = false;
       }
-    }
-
-    // Fallback: Caixinha de Música + Pad Quente (Progressão C – Am – F – G a ~70 BPM)
-    this.startMusicBoxGenerator();
+    });
   }
 
   startMusicBoxGenerator() {
@@ -447,7 +465,10 @@ class RomanticAudioEngine {
     const playTick = () => {
       if (!state.audioEnabled || !this.isPlayingMusic || !state.pageVisible) return;
       const ctx = this.ctx;
-      if (!ctx || ctx.state !== "running") return;
+      if (!ctx) return;
+      if (ctx.state === "suspended" || ctx.state === "interrupted") {
+        ctx.resume().catch(() => {});
+      }
 
       const chordIdx = Math.floor(this.stepIndex / 8) % chords.length;
       const noteIdx = this.stepIndex % 8;
@@ -458,9 +479,9 @@ class RomanticAudioEngine {
         this.playWarmPadChord(chord.pad, (stepMs * 8) / 1000);
       }
 
-      // Nota da caixinha de música (seno + harmônico de triângulo suave, decay de 1.5s)
+      // Nota da caixinha de música (seno + harmônicos de celesta, decay de 1.55s)
       const freq = chord.notes[noteIdx];
-      this.playMusicBoxNote(freq, 1.5);
+      this.playMusicBoxNote(freq, 1.55);
 
       this.stepIndex = (this.stepIndex + 1) % (chords.length * 8);
     };
@@ -469,35 +490,46 @@ class RomanticAudioEngine {
     this.arpeggioTimer = setInterval(playTick, stepMs);
   }
 
-  playMusicBoxNote(freq, duration = 1.5) {
+  playMusicBoxNote(freq, duration = 1.55) {
     if (!this.ctx || !this.musicGain) return;
     const now = this.ctx.currentTime;
 
     const oscSine = this.ctx.createOscillator();
     const oscTri = this.ctx.createOscillator();
+    const oscBell = this.ctx.createOscillator();
     const noteGain = this.ctx.createGain();
     const triGain = this.ctx.createGain();
+    const bellGain = this.ctx.createGain();
 
     oscSine.type = "sine";
     oscSine.frequency.setValueAtTime(freq, now);
 
     oscTri.type = "triangle";
     oscTri.frequency.setValueAtTime(freq * 2, now);
-    triGain.gain.setValueAtTime(0.12, now);
+    triGain.gain.setValueAtTime(0.2, now);
+
+    oscBell.type = "sine";
+    oscBell.frequency.setValueAtTime(freq * 3, now);
+    bellGain.gain.setValueAtTime(0.085, now);
+    bellGain.gain.exponentialRampToValueAtTime(0.0001, now + 0.35);
 
     noteGain.gain.setValueAtTime(0.0001, now);
-    noteGain.gain.linearRampToValueAtTime(0.16, now + 0.018);
+    noteGain.gain.linearRampToValueAtTime(0.28, now + 0.015);
     noteGain.gain.exponentialRampToValueAtTime(0.0001, now + duration);
 
     oscSine.connect(noteGain);
     oscTri.connect(triGain);
     triGain.connect(noteGain);
+    oscBell.connect(bellGain);
+    bellGain.connect(noteGain);
     noteGain.connect(this.musicGain);
 
     oscSine.start(now);
     oscTri.start(now);
+    oscBell.start(now);
     oscSine.stop(now + duration + 0.04);
     oscTri.stop(now + duration + 0.04);
+    oscBell.stop(now + 0.4);
   }
 
   playWarmPadChord(freqs, duration = 3.4) {
@@ -507,11 +539,11 @@ class RomanticAudioEngine {
     freqs.forEach((f) => {
       const osc = this.ctx.createOscillator();
       const gain = this.ctx.createGain();
-      osc.type = "sine";
+      osc.type = "triangle";
       osc.frequency.setValueAtTime(f, now);
 
       gain.gain.setValueAtTime(0.0001, now);
-      gain.gain.linearRampToValueAtTime(0.045, now + 0.65);
+      gain.gain.linearRampToValueAtTime(0.095, now + 0.55);
       gain.gain.exponentialRampToValueAtTime(0.0001, now + duration);
 
       osc.connect(gain);
@@ -546,13 +578,24 @@ class RomanticAudioEngine {
     if (!this.ctx || !this.musicGain || !this.isPlayingMusic) return;
     const now = this.ctx.currentTime;
     const baseVol = this.usingExternalMp3
-      ? (CONFIG.musica && CONFIG.musica.volume) || 0.32
-      : 0.18;
+      ? (CONFIG.musica && CONFIG.musica.volume) || 0.45
+      : 0.56;
 
     this.musicGain.gain.cancelScheduledValues(now);
     this.musicGain.gain.setValueAtTime(Math.max(0.0001, this.musicGain.gain.value), now);
     this.musicGain.gain.linearRampToValueAtTime(baseVol * 0.4, now + 0.18);
     this.musicGain.gain.linearRampToValueAtTime(baseVol, now + durationMs / 1000);
+  }
+
+  // Acorde mágico imediato ao tocar em "Ativar som e abrir" na tela inicial
+  playGateOpenChime() {
+    if (!state.audioEnabled) return;
+    const ctx = this.initContext();
+    if (!ctx) return;
+    const now = ctx.currentTime;
+    [523.25, 659.25, 783.99, 987.77, 1046.5, 1318.51].forEach((freq, idx) => {
+      this.playSoftNote(freq, now + idx * 0.065, 0.95, 0.11, "sine");
+    });
   }
 
   // Helper de nota SFX suave (volume 0.04 a 0.08 passando pelo reverb)
@@ -619,7 +662,7 @@ class RomanticAudioEngine {
     if (!ctx) return;
     const now = ctx.currentTime;
     [1046.5, 1318.51, 1567.98].forEach((freq, idx) => {
-      this.playSoftNote(freq, now + idx * 0.095, 0.55, 0.065, "sine");
+      this.playSoftNote(freq, now + idx * 0.095, 0.6, 0.14, "sine");
     });
   }
 
@@ -637,7 +680,7 @@ class RomanticAudioEngine {
     osc.frequency.exponentialRampToValueAtTime(78, now + 0.16);
 
     gain.gain.setValueAtTime(0.0001, now);
-    gain.gain.linearRampToValueAtTime(0.075, now + 0.012);
+    gain.gain.linearRampToValueAtTime(0.15, now + 0.012);
     gain.gain.exponentialRampToValueAtTime(0.0001, now + 0.18);
 
     osc.connect(gain);
@@ -645,13 +688,13 @@ class RomanticAudioEngine {
     osc.start(now);
     osc.stop(now + 0.2);
 
-    this.playFilteredNoise(0.06, "lowpass", 420, 0.8, 0.04);
+    this.playFilteredNoise(0.06, "lowpass", 420, 0.8, 0.08);
   }
 
   // Lacre de cera rachando
   playWaxCrack() {
-    this.playFilteredNoise(0.11, "bandpass", 1850, 2.2, 0.07);
-    setTimeout(() => this.playFilteredNoise(0.08, "bandpass", 1320, 1.8, 0.05), 55);
+    this.playFilteredNoise(0.12, "bandpass", 1850, 2.2, 0.14);
+    setTimeout(() => this.playFilteredNoise(0.09, "bandpass", 1320, 1.8, 0.11), 55);
   }
 
   // Chave/cadeado: dois cliques metálicos (seno alto + ruído passa-alta curto)
@@ -660,9 +703,9 @@ class RomanticAudioEngine {
     const ctx = this.initContext();
     if (!ctx) return;
     const now = ctx.currentTime;
-    this.playSoftNote(2480, now, 0.08, 0.05, "sine");
-    this.playFilteredNoise(0.04, "highpass", 3200, 1.5, 0.04);
-    this.playSoftNote(2960, now + 0.14, 0.1, 0.055, "sine");
+    this.playSoftNote(2480, now, 0.09, 0.11, "sine");
+    this.playFilteredNoise(0.045, "highpass", 3200, 1.5, 0.08);
+    this.playSoftNote(2960, now + 0.14, 0.11, 0.12, "sine");
   }
 
   // Abertura da caixa: glissando de harpa ascendente prolongado + acorde final quente sustentado
@@ -677,19 +720,19 @@ class RomanticAudioEngine {
       523.25, 587.33, 659.25, 783.99, 880.0, 1046.5, 1174.66, 1318.51, 1567.98, 1760.0,
     ];
     harpPentatonic.forEach((freq, idx) => {
-      this.playSoftNote(freq, now + idx * 0.075, 1.05, 0.055, "triangle");
+      this.playSoftNote(freq, now + idx * 0.075, 1.05, 0.12, "triangle");
     });
 
     // Acorde final sustentado
     const chordStart = now + harpPentatonic.length * 0.075;
     [523.25, 659.25, 783.99, 1046.5, 1318.51].forEach((freq) => {
-      this.playSoftNote(freq, chordStart, 2.3, 0.048, "sine");
+      this.playSoftNote(freq, chordStart, 2.3, 0.1, "sine");
     });
   }
 
   // Virada de página de papel
   playPageTurn() {
-    this.playFilteredNoise(0.16, "bandpass", 1150, 0.9, 0.055);
+    this.playFilteredNoise(0.16, "bandpass", 1150, 0.9, 0.11);
   }
 
   // Som sutil de raspar folha de ouro (apenas enquanto move o dedo)
@@ -698,7 +741,7 @@ class RomanticAudioEngine {
     const nowMs = performance.now();
     if (nowMs - this.lastScratchSoundTime < 75) return;
     this.lastScratchSoundTime = nowMs;
-    this.playFilteredNoise(0.055, "bandpass", 2200, 1.4, 0.028);
+    this.playFilteredNoise(0.055, "bandpass", 2200, 1.4, 0.065);
   }
 
   // Carimbo ("thump" grave) + Aceitar encontro (acorde maior em cascata)
@@ -710,13 +753,13 @@ class RomanticAudioEngine {
 
     const now = ctx.currentTime;
     // Thump grave do carimbo
-    this.playSoftNote(110, now, 0.22, 0.08, "sine");
-    this.playFilteredNoise(0.07, "lowpass", 600, 1.0, 0.05);
+    this.playSoftNote(110, now, 0.22, 0.16, "sine");
+    this.playFilteredNoise(0.07, "lowpass", 600, 1.0, 0.1);
 
     // Acorde maior brilhante em cascata
     const cascade = [523.25, 659.25, 783.99, 987.77, 1046.5, 1318.51, 1567.98];
     cascade.forEach((freq, idx) => {
-      this.playSoftNote(freq, now + 0.14 + idx * 0.07, 1.1, 0.058, "sine");
+      this.playSoftNote(freq, now + 0.14 + idx * 0.07, 1.1, 0.12, "sine");
     });
   }
 }
@@ -1030,10 +1073,10 @@ function updateAudioButtonUI() {
   if (!el.audioToggle) return;
   el.audioToggle.setAttribute("aria-pressed", String(state.audioEnabled));
   if (state.audioEnabled) {
-    el.audioText.textContent = "Música";
+    el.audioText.textContent = "Som: Ligado";
     el.audioToggle.setAttribute("aria-label", "Silenciar trilha sonora");
   } else {
-    el.audioText.textContent = "Som";
+    el.audioText.textContent = "Som: Mudo";
     el.audioToggle.setAttribute("aria-label", "Ativar trilha sonora suave");
   }
 }
@@ -1045,12 +1088,15 @@ function setupGateAndAudio() {
     if (state.gateOpened) return;
     state.gateOpened = true;
 
-    // 1. Desbloqueia o AudioContext e inicia a música com fade-in de 2.5s
+    // 1. Garante que o som seja ativado na abertura da surpresa e desbloqueia o hardware imediatamente
+    state.audioEnabled = true;
+    sessionStorage.setItem(STORAGE_AUDIO_KEY, "true");
+    updateAudioButtonUI();
+
     soundFX.initContext();
     soundFX.playWaxCrack();
-    if (state.audioEnabled) {
-      soundFX.startAmbientMelody();
-    }
+    soundFX.playGateOpenChime();
+    soundFX.startAmbientMelody();
 
     if (!el.stepGate) return;
 
@@ -1078,6 +1124,14 @@ function setupGateAndAudio() {
   }
 
   if (el.stepGate) {
+    // Desbloqueia o AudioContext já no primeiro toque (pointerdown) antes mesmo do click finalizar
+    el.stepGate.addEventListener(
+      "pointerdown",
+      () => {
+        soundFX.initContext();
+      },
+      { passive: true }
+    );
     el.stepGate.addEventListener("click", openGateExperience);
     el.stepGate.addEventListener("keydown", (e) => {
       if (e.key === "Enter" || e.key === " ") {
@@ -1086,6 +1140,17 @@ function setupGateAndAudio() {
       }
     });
   }
+
+  // Recuperação automática do AudioContext caso o sistema operacional ou celular suspenda o áudio
+  const ensureAudioRunningOnInteraction = () => {
+    if (!state.gateOpened || !state.audioEnabled) return;
+    soundFX.initContext();
+    if (!soundFX.isPlayingMusic) {
+      soundFX.startAmbientMelody();
+    }
+  };
+  document.addEventListener("pointerdown", ensureAudioRunningOnInteraction, { passive: true });
+  document.addEventListener("keydown", ensureAudioRunningOnInteraction, { passive: true });
 
   // Botão de mutar/desmutar (sem conflito com listeners globais)
   if (el.audioToggle) {
@@ -1096,6 +1161,7 @@ function setupGateAndAudio() {
       updateAudioButtonUI();
 
       if (state.audioEnabled) {
+        soundFX.initContext();
         soundFX.startAmbientMelody();
         soundFX.playSuccess();
       } else {
@@ -1120,6 +1186,12 @@ function setupGateAndAudio() {
       if (!el.stepLetter.hidden && state.currentLetterPage === 3) {
         startContinuousWhiteFlowers();
       }
+    }
+  });
+
+  window.addEventListener("focus", () => {
+    if (state.gateOpened && state.audioEnabled && !soundFX.isPlayingMusic) {
+      soundFX.startAmbientMelody();
     }
   });
 }

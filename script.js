@@ -2257,16 +2257,14 @@ function goToLetterPage(pageNumber, direction = "next") {
     startContinuousWhiteFlowers();
   }
 
-  // Rola suavemente só se o topo da carta estiver fora da tela (sem pulos agressivos)
-  if (el.loveLetterPaper) {
-    const rect = el.loveLetterPaper.getBoundingClientRect();
-    if (rect.top < 0 || rect.top > window.innerHeight * 0.4) {
-      el.loveLetterPaper.scrollIntoView({
-        behavior: state.reducedMotion ? "auto" : "smooth",
-        block: "nearest",
-      });
-    }
+  // Remove o foco do botão clicado no rodapé e sobe suavemente para o topo da nova página
+  if (document.activeElement && typeof document.activeElement.blur === "function") {
+    document.activeElement.blur();
   }
+  window.scrollTo({
+    top: 0,
+    behavior: state.reducedMotion ? "auto" : "smooth",
+  });
 }
 
 /* Chuva contínua de Pétalas Brancas SVG na Página 3 de Santa Teresinha */

@@ -368,10 +368,9 @@
   <section
     id="step-gate"
     class="gate-screen"
-    role="button"
-    tabindex="0"
-    aria-label="Uma surpresa para Isabela. Toque ou pressione Enter para romper o lacre e abrir com som."
+    aria-label="Uma surpresa para Isabela. Toque no envelope para romper o lacre e abrir com som."
   >
+    <div class="gate-stack">
     <div class="gate-envelope-card" id="gate-envelope-card">
       <div class="gate-envelope-pocket" aria-hidden="true"></div>
       <div class="gate-envelope-flap" id="gate-envelope-flap" aria-hidden="true"></div>
@@ -401,6 +400,51 @@
           Aumente o volume para viver a experiência completa
         </span>
       </div>
+    </div>
+
+    <!-- Relógio do nosso amor: tempo de namoro ao vivo + coração interativo -->
+    <div class="love-clock" id="love-clock" aria-label="Nosso tempo juntos">
+      <p class="love-clock-overline">
+        <span class="love-clock-line" aria-hidden="true"></span>
+        Juntos desde <span id="love-clock-since">27 · 09 · 2026</span>
+        <span class="love-clock-line" aria-hidden="true"></span>
+      </p>
+
+      <p class="love-clock-headline" id="love-clock-headline">1 mês e 1 dia</p>
+
+      <div class="love-clock-units" role="timer" aria-live="off">
+        <div class="love-unit">
+          <span class="love-unit-value" id="love-days">0</span>
+          <span class="love-unit-label">dias</span>
+        </div>
+        <span class="love-unit-sep" aria-hidden="true">·</span>
+        <div class="love-unit">
+          <span class="love-unit-value" id="love-hours">00</span>
+          <span class="love-unit-label">horas</span>
+        </div>
+        <span class="love-unit-sep" aria-hidden="true">·</span>
+        <div class="love-unit">
+          <span class="love-unit-value" id="love-minutes">00</span>
+          <span class="love-unit-label">min</span>
+        </div>
+        <span class="love-unit-sep" aria-hidden="true">·</span>
+        <div class="love-unit">
+          <span class="love-unit-value love-unit-seconds" id="love-seconds">00</span>
+          <span class="love-unit-label">seg</span>
+        </div>
+      </div>
+
+      <div class="love-heart-zone">
+        <button type="button" class="love-heart-btn" id="love-heart-btn" aria-label="Tocar no coração">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><use href="#heart" /></svg>
+          <span class="love-heart-ring" aria-hidden="true"></span>
+        </button>
+        <div class="love-heart-copy">
+          <p class="love-heart-msg" id="love-heart-msg" aria-live="polite">Toque no coração</p>
+          <p class="love-heart-count" id="love-heart-count"></p>
+        </div>
+      </div>
+    </div>
     </div>
   </section>
 
@@ -1137,9 +1181,6 @@
             <p class="counter-main-text" id="counter-main-text">
               Juntos há <strong id="counter-days">0</strong> dias, <strong id="counter-hours">0</strong> horas e <strong id="counter-minutes">0</strong> minutos
             </p>
-            <span class="counter-mesversario-badge" id="counter-mesversario-badge" hidden>
-              Feliz mêsversário! 🥂
-            </span>
           </div>
 
           <!-- Enviar mensagem para o Caique no WhatsApp -->

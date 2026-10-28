@@ -267,7 +267,6 @@ const el = {
   counterDays: document.getElementById("counter-days"),
   counterHours: document.getElementById("counter-hours"),
   counterMinutes: document.getElementById("counter-minutes"),
-  counterMesversarioBadge: document.getElementById("counter-mesversario-badge"),
 
   btnWhatsapp: document.getElementById("btn-whatsapp"),
   finaleOverlay: document.getElementById("finale-overlay"),
@@ -1425,7 +1424,19 @@ function setupGateAndAudio() {
   if (el.stepGate) {
     // IMPORTANTE: No mobile (Android Chrome / iOS Safari), apenas click e touchend liberam áudio!
     el.stepGate.addEventListener("click", openGateExperience);
+    // Ignora o touchend quando o dedo estava rolando a tela (evita abrir sem querer ao rolar)
+    let gateTouchY = 0;
+    let gateTouchMoved = false;
+    el.stepGate.addEventListener("touchstart", (e) => {
+      gateTouchMoved = false;
+      gateTouchY = e.touches && e.touches[0] ? e.touches[0].clientY : 0;
+    }, { passive: true });
+    el.stepGate.addEventListener("touchmove", (e) => {
+      const y = e.touches && e.touches[0] ? e.touches[0].clientY : 0;
+      if (Math.abs(y - gateTouchY) > 10) gateTouchMoved = true;
+    }, { passive: true });
     el.stepGate.addEventListener("touchend", () => {
+      if (gateTouchMoved) return;
       openGateExperience();
     }, { passive: true });
     el.stepGate.addEventListener("keydown", (e) => {
@@ -3314,21 +3325,14 @@ function computeRelationshipDuration() {
   const hours = Math.floor((totalMinutes % (60 * 24)) / 60);
   const minutes = totalMinutes % 60;
 
-  const isMesversario =
-    days > 0 && (days % 30 === 0 || now.getDate() === start.getDate());
-
-  return { days, hours, minutes, isMesversario };
+  return { days, hours, minutes };
 }
 
 function startRelationshipCounter(animateCountUp = true) {
   if (relationshipCounterTimer) clearInterval(relationshipCounterTimer);
 
   const updateValues = (useCountUp = false) => {
-    const { days, hours, minutes, isMesversario } = computeRelationshipDuration();
-
-    if (el.counterMesversarioBadge) {
-      el.counterMesversarioBadge.hidden = !isMesversario;
-    }
+    const { days, hours, minutes } = computeRelationshipDuration();
 
     if (!useCountUp || state.reducedMotion) {
       if (el.counterDays) el.counterDays.textContent = String(days);
@@ -3632,12 +3636,188 @@ function resetExperience() {
 }
 
 /* ============================================================================
+   RELÓGIO DO NOSSO AMOR NA TELA INICIAL (tempo ao vivo + coração interativo)
+   ============================================================================ */
+const LOVE_TAPS_KEY = "surpresa_isabela_love_taps";
+
+function addMonthsClamped(date, months) {
+  const y = date.getFullYear();
+  const m = date.getMonth() + months;
+  const target = new Date(y, m, 1, date.getHours(), date.getMinutes(), date.getSeconds());
+  const lastDay = new Date(target.getFullYear(), target.getMonth() + 1, 0).getDate();
+  target.setDate(Math.min(date.getDate(), lastDay));
+  return target;
+}
+
+function computeLoveCalendar(now = new Date()) {
+  const start = parseStartDate(CONFIG.dataInicioNamoro);
+  if (now < start) {
+    return { start, months: 0, days: 0, totalMs: 0, lastMark: start, nextMark: addMonthsClamped(start, 1) };
+  }
+  let months = (now.getFullYear() - start.getFullYear()) * 12 + (now.getMonth() - start.getMonth());
+  if (addMonthsClamped(start, months) > now) months--;
+  const lastMark = addMonthsClamped(start, months);
+  const nextMark = addMonthsClamped(start, months + 1);
+  const days = Math.floor((now - lastMark) / 86400000);
+  return { start, months, days, totalMs: now - start, lastMark, nextMark };
+}
+
+function formatLoveHeadline(months, days) {
+  const years = Math.floor(months / 12);
+  const restMonths = months % 12;
+  const parts = [];
+  if (years) parts.push(`${years} ${years === 1 ? "ano" : "anos"}`);
+  if (restMonths) parts.push(`${restMonths} ${restMonths === 1 ? "mês" : "meses"}`);
+  if (days || !parts.length) parts.push(`${days} ${days === 1 ? "dia" : "dias"}`);
+  if (parts.length === 1) return parts[0];
+  return `${parts.slice(0, -1).join(", ")} e ${parts[parts.length - 1]}`;
+}
+
+function setupGateLoveClock() {
+  const root = document.getElementById("love-clock");
+  if (!root) return;
+
+  const $ = (id) => document.getElementById(id);
+  const sinceEl = $("love-clock-since");
+  const headlineEl = $("love-clock-headline");
+  const daysEl = $("love-days");
+  const hoursEl = $("love-hours");
+  const minutesEl = $("love-minutes");
+  const secondsEl = $("love-seconds");
+  const heartBtn = $("love-heart-btn");
+  const heartMsg = $("love-heart-msg");
+  const heartCount = $("love-heart-count");
+
+  // Nada dentro do relógio abre o envelope (só o próprio envelope/botão abre)
+  ["click", "touchend", "keydown", "pointerdown"].forEach((evt) => {
+    root.addEventListener(evt, (e) => e.stopPropagation(), { passive: evt !== "keydown" });
+  });
+
+  const pad = (n) => String(n).padStart(2, "0");
+  const startDate = parseStartDate(CONFIG.dataInicioNamoro);
+  if (sinceEl) {
+    sinceEl.textContent = `${pad(startDate.getDate())} · ${pad(startDate.getMonth() + 1)} · ${startDate.getFullYear()}`;
+  }
+
+  let lastSecond = -1;
+  let clockTimer = null;
+
+  function renderClock() {
+    if (el.stepGate && el.stepGate.hidden) {
+      clearInterval(clockTimer);
+      return;
+    }
+    const now = new Date();
+    const cal = computeLoveCalendar(now);
+    const totalSec = Math.floor(cal.totalMs / 1000);
+    const d = Math.floor(totalSec / 86400);
+    const h = Math.floor((totalSec % 86400) / 3600);
+    const m = Math.floor((totalSec % 3600) / 60);
+    const s = totalSec % 60;
+
+    if (daysEl) daysEl.textContent = String(d);
+    if (hoursEl) hoursEl.textContent = pad(h);
+    if (minutesEl) minutesEl.textContent = pad(m);
+    if (secondsEl && s !== lastSecond) {
+      secondsEl.textContent = pad(s);
+      if (!state.reducedMotion) {
+        secondsEl.classList.remove("tick");
+        void secondsEl.offsetWidth;
+        secondsEl.classList.add("tick");
+      }
+      lastSecond = s;
+    }
+
+    if (headlineEl) headlineEl.textContent = formatLoveHeadline(cal.months, cal.days);
+  }
+
+  renderClock();
+  clockTimer = setInterval(renderClock, 1000);
+
+  // Coração interativo: cada toque é um "te amo" guardado no aparelho
+  const messages = [
+    "Mais um segundo te amando",
+    "Esse coração bate por você",
+    "Cada dia ao seu lado é presente",
+    "Sorte que não tinha “quem ama mais” 😌",
+    "Bora marcar o nosso açaí? 🍨",
+    "Você é a minha resposta do céu 🤍",
+    "Para sempre seu",
+  ];
+  const notes = [523.25, 587.33, 659.25, 783.99, 880.0, 1046.5];
+  let taps = parseInt(localStorage.getItem(LOVE_TAPS_KEY) || "0", 10) || 0;
+  let msgIndex = -1;
+
+  const renderCount = () => {
+    if (!heartCount) return;
+    heartCount.textContent = taps
+      ? `${taps} ${taps === 1 ? "batida de amor" : "batidas de amor"}`
+      : "cada toque é um te amo";
+  };
+  renderCount();
+
+  function spawnFloatingHearts() {
+    if (state.reducedMotion || !heartBtn) return;
+    const rootRect = root.getBoundingClientRect();
+    const btnRect = heartBtn.getBoundingClientRect();
+    const cx = btnRect.left - rootRect.left + btnRect.width / 2;
+    const cy = btnRect.top - rootRect.top + btnRect.height / 2;
+    for (let i = 0; i < 6; i++) {
+      const item = document.createElement("span");
+      const isGold = i % 3 === 0;
+      item.className = `love-float${isGold ? " gold" : ""}`;
+      item.innerHTML = `<svg viewBox="0 0 24 24"><use href="${isGold ? "#sparkle" : "#heart"}" /></svg>`;
+      item.style.left = `${cx}px`;
+      item.style.top = `${cy}px`;
+      item.style.setProperty("--fx", `${((Math.random() - 0.5) * 90).toFixed(0)}px`);
+      item.style.setProperty("--fy", `${(-60 - Math.random() * 60).toFixed(0)}px`);
+      item.style.setProperty("--fr", `${((Math.random() - 0.5) * 50).toFixed(0)}deg`);
+      item.style.animationDelay = `${i * 40}ms`;
+      root.appendChild(item);
+      setTimeout(() => item.remove(), 1500);
+    }
+  }
+
+  if (heartBtn) {
+    heartBtn.addEventListener("click", () => {
+      taps++;
+      try {
+        localStorage.setItem(LOVE_TAPS_KEY, String(taps));
+      } catch (_) {}
+      renderCount();
+
+      heartBtn.classList.remove("pressed");
+      void heartBtn.offsetWidth;
+      heartBtn.classList.add("pressed");
+      spawnFloatingHearts();
+      navigator.vibrate?.(12);
+
+      // Nota suave de piano subindo a escala a cada toque
+      try {
+        const ctx = soundFX.initContext();
+        if (ctx) soundFX.playFeltPianoNote(notes[(taps - 1) % notes.length], ctx.currentTime + 0.01, 1.2, 0.07);
+      } catch (_) {}
+
+      if (heartMsg) {
+        msgIndex = (msgIndex + 1) % messages.length;
+        heartMsg.classList.add("swap");
+        setTimeout(() => {
+          heartMsg.textContent = messages[msgIndex];
+          heartMsg.classList.remove("swap");
+        }, 180);
+      }
+    });
+  }
+}
+
+/* ============================================================================
    INICIALIZAÇÃO GERAL
    ============================================================================ */
 function init() {
   initPersonalization();
   initAmbientParticles();
   setupGateAndAudio();
+  setupGateLoveClock();
   setupBoxAndDesktopParallax();
 
   el.btnStart.addEventListener("click", () => {

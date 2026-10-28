@@ -378,6 +378,10 @@
       <div class="gate-content">
         <p class="gate-overline">Uma surpresa para</p>
         <h1 class="gate-script-name">Isabela</h1>
+        <div class="isabela-meaning-pill" title="Significado do nome Isabela">
+          <span class="meaning-sparkle" aria-hidden="true">✨</span>
+          <span class="meaning-text"><em>Isabela:</em> “Promessa de Deus” 🤍</span>
+        </div>
       </div>
 
       <!-- Lacre de cera que se parte em 2 metades ao tocar -->
@@ -402,15 +406,16 @@
       </div>
     </div>
 
-    <!-- Relógio do nosso amor: tempo de namoro ao vivo + coração interativo -->
-    <div class="love-clock" id="love-clock" aria-label="Nosso tempo juntos">
+    <!-- Relógio do nosso amor: tempo de namoro ao vivo + bilhetinhos + coração interativo -->
+    <div class="love-clock" id="love-clock" aria-label="Nosso tempo de namoro">
       <p class="love-clock-overline">
         <span class="love-clock-line" aria-hidden="true"></span>
-        Juntos desde <span id="love-clock-since">27 · 09 · 2026</span>
+        Nosso Tempo de Namoro
         <span class="love-clock-line" aria-hidden="true"></span>
       </p>
 
       <p class="love-clock-headline" id="love-clock-headline">1 mês e 1 dia</p>
+      <p class="love-clock-since-text">oficialmente juntos desde <span id="love-clock-since">27 · 09 · 2026</span></p>
 
       <div class="love-clock-units" role="timer" aria-live="off">
         <div class="love-unit">
@@ -434,6 +439,20 @@
         </div>
       </div>
 
+      <!-- Bilhetinho fofo de amor interativo -->
+      <div class="love-note-card" id="love-note-card">
+        <div class="love-note-header">
+          <span class="love-note-tag">💌 Bilhetinho para você</span>
+          <button type="button" class="btn-refresh-note" id="btn-refresh-note" aria-label="Tirar outro bilhetinho de amor">
+            <svg class="refresh-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#sparkle" /></svg>
+            <span>Outro bilhete</span>
+          </button>
+        </div>
+        <p class="love-note-text" id="love-note-text">
+          “Isabela: Promessa de Deus, dona do sorriso mais lindo e do meu coração inteiro.”
+        </p>
+      </div>
+
       <div class="love-heart-zone">
         <button type="button" class="love-heart-btn" id="love-heart-btn" aria-label="Tocar no coração">
           <svg viewBox="0 0 24 24" aria-hidden="true"><use href="#heart" /></svg>
@@ -441,7 +460,7 @@
         </button>
         <div class="love-heart-copy">
           <p class="love-heart-msg" id="love-heart-msg" aria-live="polite">Toque no coração</p>
-          <p class="love-heart-count" id="love-heart-count"></p>
+          <p class="love-heart-count" id="love-heart-count">cada toque é um te amo</p>
         </div>
       </div>
     </div>

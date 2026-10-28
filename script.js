@@ -3669,8 +3669,8 @@ function formatLoveHeadline(months, days) {
   if (years) parts.push(`${years} ${years === 1 ? "ano" : "anos"}`);
   if (restMonths) parts.push(`${restMonths} ${restMonths === 1 ? "mês" : "meses"}`);
   if (days || !parts.length) parts.push(`${days} ${days === 1 ? "dia" : "dias"}`);
-  if (parts.length === 1) return parts[0];
-  return `${parts.slice(0, -1).join(", ")} e ${parts[parts.length - 1]}`;
+  const base = parts.length === 1 ? parts[0] : `${parts.slice(0, -1).join(", ")} e ${parts[parts.length - 1]}`;
+  return `${base} de muito amor`;
 }
 
 function setupGateLoveClock() {
@@ -3687,6 +3687,8 @@ function setupGateLoveClock() {
   const heartBtn = $("love-heart-btn");
   const heartMsg = $("love-heart-msg");
   const heartCount = $("love-heart-count");
+  const noteTextEl = $("love-note-text");
+  const refreshNoteBtn = $("btn-refresh-note");
 
   // Nada dentro do relógio abre o envelope (só o próprio envelope/botão abre)
   ["click", "touchend", "keydown", "pointerdown"].forEach((evt) => {
@@ -3733,6 +3735,43 @@ function setupGateLoveClock() {
 
   renderClock();
   clockTimer = setInterval(renderClock, 1000);
+
+  // Bilhetinhos de amor fofos interativos
+  const loveNotes = [
+    "“Isabela: Promessa de Deus, dona do sorriso mais lindo e do meu coração inteiro.”",
+    "“Você foi a flor branca que Santa Teresinha enviou para abençoar cada um dos meus dias.”",
+    "“Se eu pudesse voltar no tempo e escolher de novo, escolheria você todos os dias, em todas as vidas.”",
+    "“O meu plano favorito no mundo é qualquer um que termine de mãos dadas com você.”",
+    "“Amar você é a coisa mais fácil e mais bonita que meu coração já aprendeu a fazer.”",
+    "“Obrigado por ser meu refúgio, minha paz e o amor mais lindo da minha vida.”",
+    "“Cada segundo ao seu lado me dá mais certeza: nosso amor é para a eternidade.”",
+    "“Sorte a minha que Deus atendeu minhas orações colocando você no meu caminho.”",
+    "“Eu não te amo só com palavras, te amo com cada batida do meu coração.”",
+    "“Quando estou com você, o mundo inteiro faz silêncio só para eu te admirar.”"
+  ];
+  let currentNoteIdx = 0;
+
+  if (refreshNoteBtn && noteTextEl) {
+    refreshNoteBtn.addEventListener("click", () => {
+      refreshNoteBtn.classList.add("spin");
+      setTimeout(() => refreshNoteBtn.classList.remove("spin"), 450);
+      noteTextEl.classList.add("swap");
+      navigator.vibrate?.(10);
+      try {
+        const ctx = soundFX.initContext();
+        if (ctx) soundFX.playFeltPianoNote(659.25, ctx.currentTime + 0.01, 1.1, 0.06);
+      } catch (_) {}
+      setTimeout(() => {
+        let nextIdx;
+        do {
+          nextIdx = Math.floor(Math.random() * loveNotes.length);
+        } while (nextIdx === currentNoteIdx && loveNotes.length > 1);
+        currentNoteIdx = nextIdx;
+        noteTextEl.textContent = loveNotes[currentNoteIdx];
+        noteTextEl.classList.remove("swap");
+      }, 180);
+    });
+  }
 
   // Coração interativo: cada toque é um "te amo" guardado no aparelho
   const messages = [

@@ -1030,6 +1030,18 @@ class RomanticAudioEngine {
     });
   }
 
+  // Desdobrar da carta: acorde ascendente de piano suave
+  playLetterReveal() {
+    this.playFilteredNoise(0.22, "bandpass", 1000, 0.8, 0.08);
+    if (!state.audioEnabled) return;
+    const ctx = this.initContext();
+    if (!ctx) return;
+    const now = ctx.currentTime;
+    [440.0, 523.25, 659.25, 783.99, 1046.5].forEach((freq, idx) => {
+      this.playFeltPianoNote(freq, now + idx * 0.085, 1.8, 0.045);
+    });
+  }
+
   // Som sutil de raspar folha de ouro (apenas enquanto move o dedo)
   playScratchGrain() {
     if (!state.audioEnabled) return;
@@ -2542,7 +2554,7 @@ function openLetterStage() {
     return;
   }
 
-  // Sequência cinematográfica e prolongada de abertura do envelope 3D (~4.6s)
+  // Sequência cinematográfica ágil e elegante de abertura do envelope (~2.6s)
   state.envelopeOpenedOnce = true;
   if (el.letterEnvelopeStage) el.letterEnvelopeStage.hidden = false;
   if (el.loveLetterPaper) el.loveLetterPaper.hidden = true;
@@ -2554,7 +2566,13 @@ function openLetterStage() {
   const envGlow = document.getElementById("real-env-inner-glow");
   const envCaption = document.getElementById("envelope-stage-caption");
 
+  let isRevealed = false;
+  let tl = null;
+
   const revealFullLetterPaper = () => {
+    if (isRevealed) return;
+    isRevealed = true;
+    if (tl) tl.kill();
     if (el.letterEnvelopeStage) el.letterEnvelopeStage.hidden = true;
     if (el.loveLetterPaper) {
       el.loveLetterPaper.hidden = false;
@@ -2562,101 +2580,105 @@ function openLetterStage() {
       void el.loveLetterPaper.offsetWidth;
       el.loveLetterPaper.classList.add("unfolding-paper");
     }
+    soundFX.playLetterReveal();
     window.scrollTo({ top: 0, behavior: state.reducedMotion ? "auto" : "smooth" });
     goToLetterPage(1, "next");
   };
 
+  // Toque em qualquer lugar do envelope para desdobrar a carta imediatamente
+  if (el.letterEnvelopeStage) {
+    el.letterEnvelopeStage.addEventListener("click", () => {
+      revealFullLetterPaper();
+    }, { once: true });
+  }
+
   const gsapInstance = window.gsap;
   if (!gsapInstance) {
-    // Fallback CSS prolongado (~4.2s) caso o GSAP não esteja disponível
+    // Fallback CSS acelerado (~2.5s) caso o GSAP não esteja disponível
     setTimeout(() => {
       soundFX.playWaxCrack();
       if (envSeal) envSeal.classList.add("seal-cracked");
       spawnEnvelopeParticles(8);
-    }, 650);
+    }, 400);
 
     setTimeout(() => {
       if (el.realEnvelope) el.realEnvelope.classList.add("env-step-seal");
-    }, 1050);
+    }, 700);
 
     setTimeout(() => {
       if (el.realEnvelope) el.realEnvelope.classList.add("env-step-flap");
       soundFX.playPageTurn();
-    }, 1750);
+    }, 1100);
+
+    setTimeout(() => {
+      if (envCaption) envCaption.style.opacity = "0";
+    }, 1300);
 
     setTimeout(() => {
       if (el.realEnvelope) el.realEnvelope.classList.add("env-step-sheet");
       soundFX.playPageTurn();
       spawnEnvelopeParticles(8);
-    }, 2650);
+    }, 1450);
 
     setTimeout(() => {
       if (el.realEnvelope) el.realEnvelope.classList.add("env-step-done");
-    }, 3650);
+    }, 2100);
 
-    setTimeout(revealFullLetterPaper, 4200);
+    setTimeout(revealFullLetterPaper, 2550);
     return;
   }
 
-  const tl = gsapInstance.timeline();
+  tl = gsapInstance.timeline();
 
-  // 0.00s - 0.85s: O envelope entra no centro do palco iluminado e o lacre pulsa
+  // 0.00s - 0.40s: Entrada suave do envelope iluminado
   tl.fromTo(
     el.realEnvelope,
-    { opacity: 0, y: 28, scale: 0.9, rotationX: 14 },
-    { opacity: 1, y: 0, scale: 1.04, rotationX: 0, duration: 0.72, ease: "back.out(1.4)" },
+    { opacity: 0, y: 22, scale: 0.92, rotationX: 12 },
+    { opacity: 1, y: 0, scale: 1.02, rotationX: 0, duration: 0.42, ease: "power2.out" },
     0
   );
-  if (envSeal) {
-    tl.to(
-      envSeal,
-      { scale: 1.12, duration: 0.28, yoyo: true, repeat: 1, ease: "sine.inOut" },
-      0.45
-    );
-  }
 
-  // 0.90s - 1.85s: O lacre de cera vermelho trinca, solta faíscas e cai com gravidade
+  // 0.42s: Lacre de cera vermelho estala e solta partículas
   tl.add(() => {
     if (envCaption) envCaption.textContent = "Quebrando o lacre real…";
     soundFX.playWaxCrack();
-    navigator.vibrate?.([18, 30, 18]);
+    navigator.vibrate?.([16, 26, 16]);
     if (envSeal) envSeal.classList.add("seal-cracked");
     spawnEnvelopeParticles(10);
-  }, 0.92);
+  }, 0.42);
 
   if (envSeal) {
     tl.to(
       envSeal,
       {
         keyframes: [
-          { x: -3, rotation: -6, duration: 0.06 },
-          { x: 3, rotation: 6, duration: 0.06 },
-          { x: -2, rotation: -4, duration: 0.06 },
-          { x: 0, rotation: 0, duration: 0.06 },
+          { x: -3, rotation: -5, duration: 0.04 },
+          { x: 3, rotation: 5, duration: 0.04 },
+          { x: 0, rotation: 0, duration: 0.04 },
         ],
         ease: "sine.inOut",
       },
-      0.94
+      0.44
     );
     tl.to(
       envSeal,
-      { y: 76, rotation: 28, scale: 0.72, opacity: 0, duration: 0.58, ease: "power2.in" },
-      1.28
+      { y: 64, rotation: 22, scale: 0.72, opacity: 0, duration: 0.38, ease: "power2.in" },
+      0.60
     );
   }
 
-  // 1.85s - 2.95s: A aba superior 3D se abre lentamente revelando o brilho quente interno
+  // 0.85s: Aba abre em 3D e luz dourada quente surge internamente
   tl.add(() => {
     if (envCaption) envCaption.textContent = "Abrindo o envelope…";
     soundFX.playPageTurn();
-  }, 1.88);
+  }, 0.85);
 
   if (envFlap) {
     tl.to(
       envFlap,
       {
         rotationX: 180,
-        duration: 0.92,
+        duration: 0.62,
         ease: "power2.inOut",
         onUpdate: function () {
           if (this.progress() > 0.5) {
@@ -2664,40 +2686,46 @@ function openLetterStage() {
           }
         },
       },
-      1.88
+      0.85
     );
   }
-  if (envGlow) {
-    tl.to(envGlow, { opacity: 1, duration: 0.65, ease: "sine.out" }, 2.15);
-  }
-  tl.add(() => {
-    spawnEnvelopeParticles(8);
-  }, 2.45);
 
-  // 2.85s - 4.15s: A folha de carta marfim desliza suavemente para fora do envelope
+  if (envGlow) {
+    tl.to(envGlow, { opacity: 1, duration: 0.45, ease: "sine.out" }, 1.05);
+  }
+
+  // 1.25s: A legenda faz fade-out suave para NÃO colidir quando a folha de carta subir
+  if (envCaption) {
+    tl.to(
+      envCaption,
+      { opacity: 0, y: -10, duration: 0.28, ease: "power2.out" },
+      1.25
+    );
+  }
+
+  // 1.40s: A folha de carta marfim desliza livremente para fora, no centro limpo
   tl.add(() => {
-    if (envCaption) envCaption.textContent = "Desdobrando a sua carta…";
     soundFX.playPageTurn();
-    soundFX.playSuccess();
-    spawnEnvelopeParticles(12);
-  }, 2.85);
+    spawnEnvelopeParticles(10);
+  }, 1.40);
 
   if (envSheet) {
     tl.to(
       envSheet,
-      { y: -122, scale: 1.06, duration: 1.12, ease: "power3.out" },
-      2.85
+      { y: -112, scale: 1.05, duration: 0.75, ease: "power3.out" },
+      1.40
     );
   }
 
-  // 4.10s - 4.60s: O envelope recolhe suavemente e dá lugar ao papel completo da carta
+  // 2.20s: O envelope recolhe suavemente
   tl.to(
-    [el.realEnvelope, envCaption].filter(Boolean),
-    { y: 34, scale: 0.94, opacity: 0, duration: 0.48, ease: "power2.inOut" },
-    4.12
+    el.realEnvelope,
+    { y: 26, scale: 0.94, opacity: 0, duration: 0.40, ease: "power2.inOut" },
+    2.20
   );
 
-  tl.add(revealFullLetterPaper, 4.6);
+  // 2.60s: Desdobrar completo do papel de carta com acorde de piano e foco de leitura
+  tl.add(revealFullLetterPaper, 2.60);
 }
 
 function revealParagraphsInContainer(container) {

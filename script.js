@@ -10,7 +10,7 @@ const CONFIG = {
   // Se o arquivo ainda não existir, o site usa automaticamente a ilustração romântica reserva.
   fotoCasalUrl: "assets/foto-casal.jpg",
   fotoCasalReserva: "assets/foto-casal-placeholder.svg",
-  legendaPolaroid: "O meu lugar favorito no mundo é ao seu lado ❤️",
+  legendaPolaroid: "O meu lugar favorito no mundo é ao seu lado.",
 
   // Configuração da música de fundo (Piano Romântico Cristalino sem graves pesados no HTML5 <audio>)
   musica: {
@@ -26,7 +26,7 @@ const CONFIG = {
       "Aqui entrará uma mensagem só nossa. Um texto sobre tudo o que vivemos, sobre o quanto você é importante para mim e sobre como eu ainda quero viver muitos capítulos ao seu lado.",
       "Essa caixinha guarda apenas uma pequena parte de tudo o que eu sinto por você."
     ],
-    assinatura: "Com todo o meu amor, Caique. 💌"
+    assinatura: "Com todo o meu amor, Caique."
   },
 
   // Página 2 da Carta: Declaração profunda + Poema + Vídeo Especial
@@ -63,9 +63,9 @@ const CONFIG = {
   santaTeresinha: {
     imagemUrl: "assets/santa-teresinha-cartoon.webp",
     imagemReserva: "assets/santa-teresinha-cartoon.svg",
-    titulo: "A flor branca que você pediu a Santa Teresinha 🤍✨",
+    titulo: "A flor branca que você pediu a Santa Teresinha",
     texto1:
-      "Você me contou que rezou para ela pedindo uma flor branca — sem exigir que fosse rosa ou qualquer outra —, apenas como um sinal no seu coração de que o nosso relacionamento era da vontade de Deus. E logo no comecinho da novena, você já recebeu a sua florzinha! 🥹🤍",
+      "Você me contou que rezou para ela pedindo uma flor branca — sem exigir que fosse rosa ou qualquer outra —, apenas como um sinal no seu coração de que o nosso relacionamento era da vontade de Deus. E logo no comecinho da novena, você já recebeu a sua florzinha!",
     texto2:
       "A florzinha branca real você já ganhou… então agora toma essa chuva de florzinhas brancas digitais, só para te lembrar todos os dias: o nosso amor é plano de Deus, e você é a resposta mais linda que Ele colocou na minha vida."
   },
@@ -74,9 +74,9 @@ const CONFIG = {
   elogiosRaspadinha: {
     titulo: "Para a melhor namorada do mundo",
     elogios:
-      "Obrigado por ser uma namorada linda, incrível, atenciosa, amorosa, compreensiva, divertida, esperta… 🥰",
+      "Obrigado por ser uma namorada linda, incrível, atenciosa, amorosa, compreensiva, divertida, esperta…",
     brincadeira:
-      "(Vou parar por aqui, pois não caberiam milhões de elogios nem em todo o mundo digital! 😂💘)",
+      "(Vou parar por aqui, pois não caberiam milhões de elogios nem em todo o mundo digital!)",
     instrucao:
       "Raspe o cartão dourado abaixo com o dedo para revelar o próximo capítulo:"
   },
@@ -90,17 +90,17 @@ const CONFIG = {
 
   // Mensagem final após ela aceitar o encontro
   agradecimentoFinal: {
-    titulo: "Encontro aceito! 💜",
+    titulo: "Encontro aceito!",
     agradecimento:
       "Obrigado por ter chegado até aqui, por cada sorriso seu e por fazer os meus dias tão mais felizes.",
     promessa:
       "Agora essa caixa digital guarda uma promessa: a nossa caminhada ainda tem muitos momentos bonitos pela frente.",
     declaracao:
-      "Eu te amo, Isabela. Hoje, amanhã e em todos os próximos capítulos. ❤️",
+      "Eu te amo, Isabela. Hoje, amanhã e em todos os próximos capítulos.",
     fotoFinalUrl: "assets/foto-final.jpg",
     whatsappNumero: "5512991882850",
     whatsappMensagem:
-      "Amor, passei por todos os desafios, abri o nosso convite e já garanti meu prêmio da raspadinha! 🍨💌 (Sorte que nas perguntas não tinha \"quem ama mais\" ksksks). Mas te amo, te amo muito! Essa mensagem foi para saber se você chegou até o final e trazer a conversa aqui para o WhatsApp ❤️"
+      "Amor, passei por todos os desafios, abri o nosso convite e já garanti meu prêmio da raspadinha! (Sorte que nas perguntas não tinha \"quem ama mais\" ksksks). Mas te amo, te amo muito! Essa mensagem foi para saber se você chegou até o final e trazer a conversa aqui para o WhatsApp"
   }
 };
 
@@ -1794,7 +1794,7 @@ function setupQuestion1() {
       renderFeedback(
         el.feedbackQ1,
         "error",
-        "Digite a data especial do nosso começo antes de tentar abrir o cadeado 💕"
+        "Digite a data especial do nosso começo antes de tentar abrir o cadeado"
       );
       return;
     }
@@ -1810,7 +1810,7 @@ function setupQuestion1() {
       renderFeedback(
         el.feedbackQ1,
         "success",
-        `<p class="feedback-title">Isso mesmo! 🥹💘</p><p class="feedback-text">O dia em que a minha vida ficou muito mais bonita. Até o calendário deveria comemorar essa data.</p>`,
+        `<p class="feedback-title">Isso mesmo!</p><p class="feedback-text">O dia em que a minha vida ficou muito mais bonita. Até o calendário deveria comemorar essa data.</p>`,
         "Próxima pergunta",
         () => goToStep(el.stepQ2)
       );
@@ -1821,7 +1821,7 @@ function setupQuestion1() {
       renderFeedback(
         el.feedbackQ1,
         "error",
-        `<p class="feedback-title">Eita! Será que é mesmo a namorada do Caique ou uma invasora??? 👀</p><p class="feedback-text">Se não for Isabela, pode ir saindo daqui. Se for… respira e tenta de novo! 😂</p>`
+        `<p class="feedback-title">Eita! Será que é mesmo a namorada do Caique ou uma invasora?</p><p class="feedback-text">Se não for Isabela, pode ir saindo daqui. Se for… respira e tenta de novo!</p>`
       );
     }
   });
@@ -1848,7 +1848,7 @@ function setupQuestion2() {
         renderFeedback(
           el.feedbackQ2,
           "success",
-          `<p class="feedback-title">Santa Teresinha aprovou essa resposta! 🌹</p><p class="feedback-text">Uma rosa para você, outro cadeado aberto e mais uma prova de que essa caixa escolheu a pessoa certa.</p>`,
+          `<p class="feedback-title">Santa Teresinha aprovou essa resposta!</p><p class="feedback-text">Uma rosa para você, outro cadeado aberto e mais uma prova de que essa caixa escolheu a pessoa certa.</p>`,
           "Ir para a última pergunta",
           () => {
             preloadUpcomingAssets();
@@ -1861,15 +1861,15 @@ function setupQuestion2() {
         triggerBoxErrorShake(btn);
 
         const wrongFeedbacks = {
-          a: `<p class="feedback-title">Hmm… a intercessão foi forte, mas essa memória está precisando de uma novena! 😂</p><p class="feedback-text">Dica: a resposta certa costuma vir acompanhada de rosas.</p>`,
-          b: `<p class="feedback-title">VAMOS, TRICOLOOOR! 🔴⚪⚫</p><p class="feedback-text">Mas infelizmente esse gol foi anulado pelo VAR. Tenta outra vez! 😂</p>`,
-          d: `<p class="feedback-title">São Domingos quase mandou você rezar um Rosário inteiro! 😂📿🐶</p><p class="feedback-text">O fundador dos Dominicanos nos deu o Santo Rosário e pregou com o coração em chamas, mas para o nosso namoro a intercessora foi outra! Dica: a resposta certa costuma vir acompanhada de rosas. 🌹</p>`
+          a: `<p class="feedback-title">Hmm… a intercessão foi forte, mas essa memória está precisando de uma novena!</p><p class="feedback-text">Dica: a resposta certa costuma vir acompanhada de rosas.</p>`,
+          b: `<p class="feedback-title">VAMOS, TRICOLOR!</p><p class="feedback-text">Mas infelizmente esse gol foi anulado pelo VAR. Tenta outra vez!</p>`,
+          d: `<p class="feedback-title">São Domingos quase mandou você rezar um Rosário inteiro!</p><p class="feedback-text">O fundador dos Dominicanos nos deu o Santo Rosário e pregou com o coração em chamas, mas para o nosso namoro a intercessora foi outra! Dica: a resposta certa costuma vir acompanhada de rosas.</p>`
         };
 
         renderFeedback(
           el.feedbackQ2,
           "error",
-          wrongFeedbacks[choice] || "Quase! Tenta outra opção com carinho 💕"
+          wrongFeedbacks[choice] || "Quase! Tenta outra opção com carinho"
         );
       }
     });
@@ -1926,14 +1926,14 @@ function setupQuestion3() {
 
     if (containsAmor) {
       handleQuestion3Success(
-        `<p class="feedback-title">Exatamente! Agora sim você falou o seu nome completo. 💘</p>`
+        `<p class="feedback-title">Exatamente! Agora sim você falou o seu nome completo.</p>`
       );
       return;
     }
 
     if (startsWithIsa) {
       handleQuestion3Success(
-        `<p class="feedback-title">QUASEEE! 😌</p><p class="feedback-text">Sim, <strong>Isa</strong> ou <strong>Isabela</strong> é a dona do coração do Caique, mas o correto é: <strong>AMOR DA VIDA DO CAIQUE.</strong> 💖<br/>Mas como você chegou muito perto, vou aceitar.</p>`
+        `<p class="feedback-title">Quase!</p><p class="feedback-text">Sim, <strong>Isa</strong> ou <strong>Isabela</strong> é a dona do coração do Caique, mas o correto é: <strong>Amor da vida do Caique.</strong><br/>Mas como você chegou muito perto, vou aceitar.</p>`
       );
       return;
     }
@@ -1942,16 +1942,16 @@ function setupQuestion3() {
     el.feedbackQ3.hidden = false;
     el.feedbackQ3.className = "feedback-box feedback-error";
     el.feedbackQ3.innerHTML = `
-      <p class="feedback-title">Essa resposta levantou suspeitas… 👀</p>
+      <p class="feedback-title">Essa resposta levantou suspeitas…</p>
       <p class="feedback-text">
         Você é o amor da vida do Caique ou a Isa Ivo do multiverso?
       </p>
       <div class="identity-quick-buttons" style="margin-top: 12px;">
         <button type="button" class="btn-primary" id="btn-choice-amor">
-          <span>Sou o amor da vida do Caique 💘</span>
+          <span>Sou o amor da vida do Caique</span>
         </button>
         <button type="button" class="btn-ghost-choice" id="btn-choice-invasora">
-          <span>Sou só uma invasora curiosa 👀</span>
+          <span>Sou só uma invasora curiosa</span>
         </button>
       </div>
     `;
@@ -1962,7 +1962,7 @@ function setupQuestion3() {
     if (btnAmor) {
       btnAmor.addEventListener("click", () => {
         handleQuestion3Success(
-          `<p class="feedback-title">Exatamente! Agora sim você falou o seu nome completo. 💘</p>`
+          `<p class="feedback-title">Exatamente! Agora sim você falou o seu nome completo.</p>`
         );
       });
     }
@@ -1972,9 +1972,9 @@ function setupQuestion3() {
         triggerBoxErrorShake(btnInvasora);
         el.feedbackQ3.className = "feedback-box feedback-error";
         el.feedbackQ3.innerHTML = `
-          <p class="feedback-title">Sabia! A segurança dessa caixa é quase intransponível. 😂</p>
+          <p class="feedback-title">Sabia! A segurança dessa caixa é quase intransponível.</p>
           <p class="feedback-text">
-            Mas, como você parece promissora, vou dar mais uma chance. 😂
+            Mas, como você parece promissora, vou dar mais uma chance.
           </p>
         `;
         el.inputIdentity.value = "";
@@ -3019,7 +3019,7 @@ function initScratchCanvas() {
 
   ctx.font = "600 13px 'Plus Jakarta Sans', sans-serif";
   ctx.fillStyle = "#5A1428";
-  ctx.fillText("Descubra o nosso próximo capítulo 💜", width / 2, height / 2 + 28);
+  ctx.fillText("Descubra o nosso próximo capítulo", width / 2, height / 2 + 28);
 }
 
 // Partículas de pó dourado que saem do dedo ao raspar
@@ -3885,6 +3885,62 @@ function setupGateLoveClock() {
   }
 }
 
+function setupGateRotatingMeaning() {
+  const pill = document.getElementById("isabela-meaning-pill");
+  const phraseEl = document.getElementById("isabela-meaning-phrase");
+  if (!phraseEl) return;
+
+  const meanings = [
+    "“Promessa de Deus”",
+    "“Consagrada ao Senhor”",
+    "“A resposta da minha oração”",
+    "“Dona do sorriso mais encantador”",
+    "“Meu presente mais doce do céu”",
+    "“O grande amor da minha vida”",
+    "“Minha paz e meu porto seguro”"
+  ];
+
+  let currentIdx = 0;
+  let timer = null;
+
+  const advance = (interactive = false) => {
+    phraseEl.classList.add("swap");
+    if (interactive) {
+      navigator.vibrate?.(10);
+      try {
+        const ctx = soundFX.initContext();
+        if (ctx) soundFX.playFeltPianoNote(783.99, ctx.currentTime + 0.01, 1.0, 0.05);
+      } catch (_) {}
+    }
+    setTimeout(() => {
+      currentIdx = (currentIdx + 1) % meanings.length;
+      phraseEl.textContent = meanings[currentIdx];
+      phraseEl.classList.remove("swap");
+    }, 280);
+  };
+
+  const startAuto = () => {
+    if (timer) clearInterval(timer);
+    timer = setInterval(() => {
+      if (el.stepGate && el.stepGate.hidden) {
+        clearInterval(timer);
+        return;
+      }
+      advance(false);
+    }, 4600);
+  };
+
+  startAuto();
+
+  if (pill) {
+    pill.addEventListener("click", (e) => {
+      e.stopPropagation();
+      advance(true);
+      startAuto();
+    });
+  }
+}
+
 /* ============================================================================
    INICIALIZAÇÃO GERAL
    ============================================================================ */
@@ -3893,6 +3949,7 @@ function init() {
   initAmbientParticles();
   setupGateAndAudio();
   setupGateLoveClock();
+  setupGateRotatingMeaning();
   setupBoxAndDesktopParallax();
 
   el.btnStart.addEventListener("click", () => {

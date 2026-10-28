@@ -436,11 +436,10 @@ input:focus-visible,
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  gap: 5px;
   margin-top: 6px;
   padding: 3px 12px;
   background: rgba(181, 18, 43, 0.05);
-  border: 1px solid rgba(184, 146, 74, 0.35);
+  border: 1px solid rgba(184, 146, 74, 0.32);
   border-radius: 999px;
   font-family: var(--font-sans);
   font-size: 0.72rem;
@@ -455,11 +454,6 @@ input:focus-visible,
   font-style: italic;
   font-weight: 600;
   color: var(--crimson-700);
-}
-
-.meaning-sparkle {
-  font-size: 0.76rem;
-  color: var(--gold-600);
 }
 
 @keyframes meaningFadeIn {
@@ -687,11 +681,11 @@ input:focus-visible,
   color: rgba(224, 196, 138, 0.45);
 }
 
-/* Bilhetinho fofo de amor interativo */
+/* Bilhetinho fofo de amor com rotação automática */
 .love-note-card {
   position: relative;
   margin-top: 14px;
-  padding: 12px 14px 13px;
+  padding: 13px 16px 14px;
   border-radius: 16px;
   background:
     radial-gradient(circle at 10% 0%, rgba(243, 227, 189, 0.12) 0%, transparent 50%),
@@ -699,6 +693,13 @@ input:focus-visible,
   border: 1px solid rgba(243, 227, 189, 0.22);
   text-align: left;
   box-shadow: 0 4px 18px -6px rgba(0, 0, 0, 0.45);
+  cursor: pointer;
+  transition: border-color 0.3s ease, background 0.3s ease;
+}
+
+.love-note-card:hover {
+  border-color: rgba(243, 227, 189, 0.38);
+  background: rgba(255, 251, 245, 0.12);
 }
 
 .love-note-header {
@@ -710,61 +711,46 @@ input:focus-visible,
 
 .love-note-tag {
   font-family: var(--font-sans);
-  font-size: 0.65rem;
+  font-size: 0.63rem;
   font-weight: 700;
-  letter-spacing: 0.1em;
+  letter-spacing: 0.14em;
   text-transform: uppercase;
   color: var(--gold-400);
 }
 
-.btn-refresh-note {
-  display: inline-flex;
+.love-note-dots {
+  display: flex;
   align-items: center;
-  gap: 5px;
-  background: rgba(224, 196, 138, 0.12);
-  border: 1px solid rgba(224, 196, 138, 0.35);
-  border-radius: 999px;
-  padding: 3px 10px;
-  color: var(--gold-200);
-  font-family: var(--font-sans);
-  font-size: 0.65rem;
-  font-weight: 600;
-  cursor: pointer;
-  transition: all 0.25s ease;
-  -webkit-tap-highlight-color: transparent;
+  gap: 4px;
 }
 
-.btn-refresh-note:hover,
-.btn-refresh-note:active {
-  background: rgba(224, 196, 138, 0.24);
-  border-color: var(--gold-400);
-  transform: scale(1.03);
+.love-note-dot {
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: rgba(224, 196, 138, 0.25);
+  transition: all 0.4s var(--ease-spring);
 }
 
-.btn-refresh-note .refresh-icon {
-  width: 12px;
-  height: 12px;
-  fill: currentColor;
-  transition: transform 0.45s var(--ease-spring);
-}
-
-.btn-refresh-note.spin .refresh-icon {
-  transform: rotate(180deg) scale(1.2);
+.love-note-dot.active {
+  width: 14px;
+  border-radius: 99px;
+  background: var(--gold-400);
 }
 
 .love-note-text {
   font-family: var(--font-letter);
   font-style: italic;
-  font-size: 0.98rem;
-  line-height: 1.45;
+  font-size: 1.02rem;
+  line-height: 1.48;
   color: var(--on-dark);
-  min-height: 2.8em;
-  transition: opacity 0.22s ease, transform 0.22s ease;
+  min-height: 2.9em;
+  transition: opacity 0.35s ease, transform 0.35s var(--ease-out-expo);
 }
 
 .love-note-text.swap {
   opacity: 0;
-  transform: translateY(3px);
+  transform: translateY(4px);
 }
 
 .love-heart-zone {

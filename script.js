@@ -3687,8 +3687,9 @@ function setupGateLoveClock() {
   const heartBtn = $("love-heart-btn");
   const heartMsg = $("love-heart-msg");
   const heartCount = $("love-heart-count");
+  const noteCardEl = $("love-note-card");
   const noteTextEl = $("love-note-text");
-  const refreshNoteBtn = $("btn-refresh-note");
+  const noteDotsEl = $("love-note-dots");
 
   // Nada dentro do relógio abre o envelope (só o próprio envelope/botão abre)
   ["click", "touchend", "keydown", "pointerdown"].forEach((evt) => {
@@ -3736,7 +3737,7 @@ function setupGateLoveClock() {
   renderClock();
   clockTimer = setInterval(renderClock, 1000);
 
-  // Bilhetinhos de amor fofos interativos
+  // Bilhetinhos de amor fofos com rotação automática suave
   const loveNotes = [
     "“Isabela: Promessa de Deus, dona do sorriso mais lindo e do meu coração inteiro.”",
     "“Você foi a flor branca que Santa Teresinha enviou para abençoar cada um dos meus dias.”",
@@ -3750,26 +3751,61 @@ function setupGateLoveClock() {
     "“Quando estou com você, o mundo inteiro faz silêncio só para eu te admirar.”"
   ];
   let currentNoteIdx = 0;
+  let noteAutoTimer = null;
 
-  if (refreshNoteBtn && noteTextEl) {
-    refreshNoteBtn.addEventListener("click", () => {
-      refreshNoteBtn.classList.add("spin");
-      setTimeout(() => refreshNoteBtn.classList.remove("spin"), 450);
-      noteTextEl.classList.add("swap");
+  // Cria indicadores de bolinhas delicadas para cada bilhete
+  if (noteDotsEl) {
+    noteDotsEl.innerHTML = "";
+    loveNotes.forEach((_, idx) => {
+      const dot = document.createElement("span");
+      dot.className = `love-note-dot${idx === 0 ? " active" : ""}`;
+      noteDotsEl.appendChild(dot);
+    });
+  }
+
+  const updateDots = (activeIndex) => {
+    if (!noteDotsEl) return;
+    const dots = noteDotsEl.querySelectorAll(".love-note-dot");
+    dots.forEach((dot, idx) => {
+      dot.classList.toggle("active", idx === activeIndex);
+    });
+  };
+
+  const advanceNote = (interactive = false) => {
+    if (!noteTextEl) return;
+    noteTextEl.classList.add("swap");
+    if (interactive) {
       navigator.vibrate?.(10);
       try {
         const ctx = soundFX.initContext();
-        if (ctx) soundFX.playFeltPianoNote(659.25, ctx.currentTime + 0.01, 1.1, 0.06);
+        if (ctx) soundFX.playFeltPianoNote(659.25, ctx.currentTime + 0.01, 1.1, 0.05);
       } catch (_) {}
-      setTimeout(() => {
-        let nextIdx;
-        do {
-          nextIdx = Math.floor(Math.random() * loveNotes.length);
-        } while (nextIdx === currentNoteIdx && loveNotes.length > 1);
-        currentNoteIdx = nextIdx;
-        noteTextEl.textContent = loveNotes[currentNoteIdx];
-        noteTextEl.classList.remove("swap");
-      }, 180);
+    }
+    setTimeout(() => {
+      currentNoteIdx = (currentNoteIdx + 1) % loveNotes.length;
+      noteTextEl.textContent = loveNotes[currentNoteIdx];
+      updateDots(currentNoteIdx);
+      noteTextEl.classList.remove("swap");
+    }, 240);
+  };
+
+  const startNoteRotation = () => {
+    if (noteAutoTimer) clearInterval(noteAutoTimer);
+    noteAutoTimer = setInterval(() => {
+      if (el.stepGate && el.stepGate.hidden) {
+        clearInterval(noteAutoTimer);
+        return;
+      }
+      advanceNote(false);
+    }, 5400);
+  };
+
+  startNoteRotation();
+
+  if (noteCardEl) {
+    noteCardEl.addEventListener("click", () => {
+      advanceNote(true);
+      startNoteRotation(); // reinicia o intervalo após o clique
     });
   }
 
@@ -3777,10 +3813,10 @@ function setupGateLoveClock() {
   const messages = [
     "Mais um segundo te amando",
     "Esse coração bate por você",
-    "Cada dia ao seu lado é presente",
-    "Sorte que não tinha “quem ama mais” 😌",
-    "Bora marcar o nosso açaí? 🍨",
-    "Você é a minha resposta do céu 🤍",
+    "Cada dia ao seu lado é um presente",
+    "Sorte que não perguntaram quem ama mais",
+    "Bora marcar o nosso encontro com açaí?",
+    "Você é a minha resposta do céu",
     "Para sempre seu",
   ];
   const notes = [523.25, 587.33, 659.25, 783.99, 880.0, 1046.5];

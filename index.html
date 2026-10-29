@@ -267,6 +267,14 @@
       <circle cx="130" cy="15" r="2" fill="url(#svg-gold)" />
     </symbol>
 
+    <!-- Cantoneira Ornamental em Filigrana Dourada para Papel de Carta de Luxo -->
+    <symbol id="ornament-corner" viewBox="0 0 48 48">
+      <path d="M6 42 L6 12 C6 8.7 8.7 6 12 6 L42 6" fill="none" stroke="url(#svg-gold)" stroke-width="1.5" stroke-linecap="round" />
+      <path d="M6 22 C12 22 22 12 22 6" fill="none" stroke="url(#svg-gold)" stroke-width="1.1" stroke-linecap="round" opacity="0.8" />
+      <path d="M6 32 C18 32 32 18 32 6" fill="none" stroke="url(#svg-gold)" stroke-width="1.1" stroke-linecap="round" opacity="0.65" />
+      <circle cx="12" cy="12" r="2.2" fill="#B5122B" stroke="url(#svg-gold)" stroke-width="1" />
+    </symbol>
+
     <!-- Tigela de Açaí Detalhada (com granola, banana e leite condensado) -->
     <symbol id="acai-bowl" viewBox="0 0 56 56">
       <!-- Creme de Açaí no topo -->
@@ -858,8 +866,10 @@
           </p>
           <div class="real-envelope" id="real-envelope">
             <div class="real-env-back"></div>
+            <div class="real-env-light-rays" id="real-env-light-rays" aria-hidden="true"></div>
             <div class="real-env-inner-glow" id="real-env-inner-glow"></div>
             <div class="real-env-sheet" id="real-env-sheet">
+              <div class="real-env-sheet-crease crease-top" aria-hidden="true"></div>
               <div class="real-env-sheet-ornament">
                 <svg viewBox="0 0 160 28"><use href="#ornament-sprig" /></svg>
               </div>
@@ -869,6 +879,7 @@
                 <span></span>
                 <span></span>
               </div>
+              <div class="real-env-sheet-crease crease-bottom" aria-hidden="true"></div>
             </div>
             <div class="real-env-pocket"></div>
             <div class="real-env-flap" id="real-env-flap"></div>
@@ -883,6 +894,26 @@
 
         <!-- Papel de Carta de Luxo -->
         <div class="love-letter-paper" id="love-letter-paper">
+          <!-- Cantoneiras ornamentais de filigrana dourada -->
+          <div class="letter-corner-ornament corner-top-left" aria-hidden="true"><svg viewBox="0 0 48 48"><use href="#ornament-corner" /></svg></div>
+          <div class="letter-corner-ornament corner-top-right" aria-hidden="true"><svg viewBox="0 0 48 48"><use href="#ornament-corner" /></svg></div>
+          <div class="letter-corner-ornament corner-bottom-left" aria-hidden="true"><svg viewBox="0 0 48 48"><use href="#ornament-corner" /></svg></div>
+          <div class="letter-corner-ornament corner-bottom-right" aria-hidden="true"><svg viewBox="0 0 48 48"><use href="#ornament-corner" /></svg></div>
+
+          <!-- Brilho perolado que desliza pela carta ao abrir -->
+          <div class="letter-shimmer-sweep" id="letter-shimmer-sweep" aria-hidden="true"></div>
+
+          <!-- Marca d'água artesanal no papel com monograma I ♥ C -->
+          <div class="letter-watermark-monogram" aria-hidden="true">
+            <svg viewBox="0 0 160 160">
+              <path d="M80 34 C64 12 30 18 24 50 C18 84 80 130 80 130 C80 130 142 84 136 50 C130 18 96 12 80 34 Z" fill="none" stroke="currentColor" stroke-width="1.8" stroke-dasharray="4 4" />
+              <text x="80" y="86" text-anchor="middle" font-family="var(--font-script)" font-size="36" fill="currentColor">I ♥ C</text>
+            </svg>
+          </div>
+
+          <!-- Âncora de pétalas flutuantes da carta -->
+          <div class="letter-ambient-petals" id="letter-ambient-petals" aria-hidden="true"></div>
+
           <div class="letter-top-bar">
             <div class="letter-ornament" aria-hidden="true">
               <svg viewBox="0 0 160 28"><use href="#ornament-sprig" /></svg>

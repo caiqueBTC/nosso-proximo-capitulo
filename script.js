@@ -2516,19 +2516,87 @@ function spawnEnvelopeParticles(count = 10) {
   }
 }
 
+// Estilhaços de cera vermelha que soltam ao trincar o lacre
+function spawnWaxSealChips() {
+  const anchor = document.getElementById("envelope-particles-anchor");
+  if (!anchor || state.reducedMotion) return;
+
+  for (let i = 0; i < 6; i++) {
+    const chip = document.createElement("div");
+    chip.className = "wax-seal-chip";
+    anchor.appendChild(chip);
+
+    const angle = (Math.random() * 360) * (Math.PI / 180);
+    const dist = 32 + Math.random() * 45;
+    const tx = Math.cos(angle) * dist;
+    const ty = Math.sin(angle) * dist + 24;
+    const rot = (Math.random() - 0.5) * 360;
+
+    chip.animate(
+      [
+        { transform: "translate3d(0,0,0) scale(1) rotate(0deg)", opacity: 1 },
+        { transform: `translate3d(${tx.toFixed(1)}px, ${ty.toFixed(1)}px, 0) scale(0.85) rotate(${rot.toFixed(1)}deg)`, opacity: 0.95, offset: 0.65 },
+        { transform: `translate3d(${(tx * 1.15).toFixed(1)}px, ${(ty + 40).toFixed(1)}px, 0) scale(0.5) rotate(${(rot * 1.4).toFixed(1)}deg)`, opacity: 0 }
+      ],
+      { duration: 750 + Math.random() * 250, easing: "cubic-bezier(0.25, 1, 0.5, 1)" }
+    ).onfinish = () => chip.remove();
+  }
+}
+
+// Chuva de pétalas e poeira estelar suave que flutuam ao desdobrar e folhear a carta
+function spawnLetterUnfoldPetals(count = 16) {
+  const container = document.getElementById("letter-ambient-petals");
+  if (!container || state.reducedMotion) return;
+
+  for (let i = 0; i < count; i++) {
+    const p = document.createElement("div");
+    p.className = "letter-floating-petal";
+    const isSparkle = i % 4 === 0;
+    const isWhite = i % 3 === 1;
+    p.innerHTML = isSparkle
+      ? `<svg viewBox="0 0 24 24"><use href="#sparkle" /></svg>`
+      : `<svg viewBox="0 0 28 32"><use href="${isWhite ? "#petal-white" : "#petal"}" /></svg>`;
+
+    container.appendChild(p);
+
+    const startX = 4 + Math.random() * 92;
+    const startY = -12 - Math.random() * 25;
+    const endY = 320 + Math.random() * 260;
+    const swayX = (Math.random() - 0.5) * 55;
+    const rot = (Math.random() - 0.5) * 340;
+    const scale = 0.55 + Math.random() * 0.5;
+    const duration = 2600 + Math.random() * 1600;
+    const delay = Math.random() * 500;
+
+    p.style.left = `${startX.toFixed(1)}%`;
+    p.style.top = `${startY.toFixed(1)}px`;
+
+    p.animate(
+      [
+        { transform: `translate3d(0, 0, 0) rotate(0deg) scale(${scale.toFixed(2)})`, opacity: 0 },
+        { opacity: 0.92, offset: 0.18 },
+        { opacity: 0.85, offset: 0.78 },
+        { transform: `translate3d(${swayX.toFixed(1)}px, ${endY.toFixed(1)}px, 0) rotate(${rot.toFixed(1)}deg) scale(${(scale * 0.75).toFixed(2)})`, opacity: 0 }
+      ],
+      { duration, delay, easing: "cubic-bezier(0.25, 0.46, 0.45, 0.94)" }
+    ).onfinish = () => p.remove();
+  }
+}
+
 function resetEnvelopeElements() {
   const envSeal = document.getElementById("real-env-seal");
   const envFlap = document.getElementById("real-env-flap");
   const envSheet = document.getElementById("real-env-sheet");
   const envGlow = document.getElementById("real-env-inner-glow");
+  const envRays = document.getElementById("real-env-light-rays");
   const envCaption = document.getElementById("envelope-stage-caption");
 
   if (window.gsap) {
     window.gsap.killTweensOf(
-      [el.realEnvelope, envSeal, envFlap, envSheet, envGlow, envCaption].filter(Boolean)
+      [el.realEnvelope, envSeal, envFlap, envSheet, envGlow, envRays, envCaption].filter(Boolean)
     );
     window.gsap.set(
-      [el.realEnvelope, envSeal, envFlap, envSheet, envGlow, envCaption].filter(Boolean),
+      [el.realEnvelope, envSeal, envFlap, envSheet, envGlow, envRays, envCaption].filter(Boolean),
       { clearProps: "all" }
     );
   }
@@ -2564,6 +2632,7 @@ function openLetterStage() {
   const envFlap = document.getElementById("real-env-flap");
   const envSheet = document.getElementById("real-env-sheet");
   const envGlow = document.getElementById("real-env-inner-glow");
+  const envRays = document.getElementById("real-env-light-rays");
   const envCaption = document.getElementById("envelope-stage-caption");
 
   let isRevealed = false;
@@ -2581,6 +2650,7 @@ function openLetterStage() {
       el.loveLetterPaper.classList.add("unfolding-paper");
     }
     soundFX.playLetterReveal();
+    spawnLetterUnfoldPetals(16);
     window.scrollTo({ top: 0, behavior: state.reducedMotion ? "auto" : "smooth" });
     goToLetterPage(1, "next");
   };
@@ -2598,6 +2668,7 @@ function openLetterStage() {
     setTimeout(() => {
       soundFX.playWaxCrack();
       if (envSeal) envSeal.classList.add("seal-cracked");
+      spawnWaxSealChips();
       spawnEnvelopeParticles(8);
     }, 400);
 
@@ -2607,6 +2678,7 @@ function openLetterStage() {
 
     setTimeout(() => {
       if (el.realEnvelope) el.realEnvelope.classList.add("env-step-flap");
+      if (envRays) envRays.style.opacity = "0.85";
       soundFX.playPageTurn();
     }, 1100);
 
@@ -2617,11 +2689,12 @@ function openLetterStage() {
     setTimeout(() => {
       if (el.realEnvelope) el.realEnvelope.classList.add("env-step-sheet");
       soundFX.playPageTurn();
-      spawnEnvelopeParticles(8);
+      spawnEnvelopeParticles(10);
     }, 1450);
 
     setTimeout(() => {
       if (el.realEnvelope) el.realEnvelope.classList.add("env-step-done");
+      if (envRays) envRays.style.opacity = "0";
     }, 2100);
 
     setTimeout(revealFullLetterPaper, 2550);
@@ -2638,13 +2711,14 @@ function openLetterStage() {
     0
   );
 
-  // 0.42s: Lacre de cera vermelho estala e solta partículas
+  // 0.42s: Lacre de cera vermelho estala, solta estilhaços e partículas douradas
   tl.add(() => {
     if (envCaption) envCaption.textContent = "Quebrando o lacre real…";
     soundFX.playWaxCrack();
     navigator.vibrate?.([16, 26, 16]);
     if (envSeal) envSeal.classList.add("seal-cracked");
-    spawnEnvelopeParticles(10);
+    spawnWaxSealChips();
+    spawnEnvelopeParticles(12);
   }, 0.42);
 
   if (envSeal) {
@@ -2667,7 +2741,7 @@ function openLetterStage() {
     );
   }
 
-  // 0.85s: Aba abre em 3D e luz dourada quente surge internamente
+  // 0.85s: Aba abre em 3D, raios de luz dourada emanam de dentro do envelope
   tl.add(() => {
     if (envCaption) envCaption.textContent = "Abrindo o envelope…";
     soundFX.playPageTurn();
@@ -2694,6 +2768,14 @@ function openLetterStage() {
     tl.to(envGlow, { opacity: 1, duration: 0.45, ease: "sine.out" }, 1.05);
   }
 
+  if (envRays) {
+    tl.to(
+      envRays,
+      { opacity: 0.82, scale: 1.15, rotation: 6, duration: 0.72, ease: "sine.out" },
+      1.02
+    );
+  }
+
   // 1.25s: A legenda faz fade-out suave para NÃO colidir quando a folha de carta subir
   if (envCaption) {
     tl.to(
@@ -2706,26 +2788,30 @@ function openLetterStage() {
   // 1.40s: A folha de carta marfim desliza livremente para fora, no centro limpo
   tl.add(() => {
     soundFX.playPageTurn();
-    spawnEnvelopeParticles(10);
+    spawnEnvelopeParticles(12);
   }, 1.40);
 
   if (envSheet) {
     tl.to(
       envSheet,
-      { y: -112, scale: 1.05, duration: 0.75, ease: "power3.out" },
+      { y: -116, scale: 1.05, rotationZ: -1.2, duration: 0.75, ease: "power3.out" },
       1.40
     );
   }
 
-  // 2.20s: O envelope recolhe suavemente
+  // 2.10s: Os raios de luz e o envelope recolhem suavemente
+  if (envRays) {
+    tl.to(envRays, { opacity: 0, duration: 0.30, ease: "power2.in" }, 2.10);
+  }
+
   tl.to(
     el.realEnvelope,
-    { y: 26, scale: 0.94, opacity: 0, duration: 0.40, ease: "power2.inOut" },
-    2.20
+    { y: 20, scale: 0.95, opacity: 0, duration: 0.35, ease: "power2.inOut" },
+    2.15
   );
 
-  // 2.60s: Desdobrar completo do papel de carta com acorde de piano e foco de leitura
-  tl.add(revealFullLetterPaper, 2.60);
+  // 2.35s: Desdobrar completo do papel de carta com acorde de piano e chuva de pétalas (crossfade suave)
+  tl.add(revealFullLetterPaper, 2.35);
 }
 
 function revealParagraphsInContainer(container) {
@@ -2764,6 +2850,7 @@ function goToLetterPage(pageNumber, direction = "next") {
     if (isTarget && !state.reducedMotion) {
       void pageEl.offsetWidth;
       pageEl.classList.add(direction === "prev" ? "page-flip-prev" : "page-flip-next");
+      spawnLetterUnfoldPetals(5);
     }
   });
 
